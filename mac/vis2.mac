@@ -1,0 +1,12 @@
+# Macro file for the visualization setting in the initialization phase 
+# of the B1 example when running in interactive mode
+#
+
+# Use these open statements to open selected visualization
+#
+/vis/open DAWNFILE
+/vis/drawVolume 
+/vis/viewer/flush
+/vis/viewer/set/lineSegmentsPerCircle 100
+#/vis/scene/add/trajectories
+#/vis/scene/add/hits

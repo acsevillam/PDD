@@ -1,0 +1,9 @@
+# Beam file for NP1
+# 
+# Elliptical beam
+/gps/pos/type Plane
+/gps/pos/shape Ellipse
+/gps/direction 0 0 1
+/gps/pos/centre 0. 0. -100. cm
+/gps/pos/halfx 2.5 mm
+/gps/pos/halfy 2.5 mm

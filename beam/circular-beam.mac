@@ -1,0 +1,9 @@
+# Beam file for NP1
+# 
+# circular beam
+/gps/pos/type Beam
+/gps/direction 0 0 1
+/gps/pos/centre 0. 0. -1. cm #beam position 
+
+/gps/pos/shape Circle
+/gps/pos/radius 2 mm

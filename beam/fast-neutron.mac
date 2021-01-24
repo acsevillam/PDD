@@ -1,0 +1,7 @@
+# Beam file for NP1
+# 
+# Fast neutron beam spectrum
+/gps/ene/type Arb
+/gps/hist/type arb
+/gps/hist/file beam/fast-neutron-therapy-spectrum-by-standard-target.dat
+/gps/hist/inter Lin

@@ -1,0 +1,93 @@
+# Macro file for N1
+#
+
+##################### G4State_PreInit ###################
+
+# ================== Analysis settings ==================
+
+# Analysis parameters
+/analysis/setFileName data/N1
+/analysis/setActivation true
+
+# Switch on/off histos
+/analysis/setHistoDirName histograms
+/analysis/h1/setActivationToAll true
+
+# Switch on/off ntupling
+/analysis/setNtupleDirName ntuples
+/analysis/ntuple/setActivationToAll true
+
+# =================== Physics settings ==================
+
+/process/em/fluo true
+/process/em/auger true
+/process/em/augerCascade true
+/process/em/deexcitationIgnoreCut true 
+/process/em/lowestElectronEnergy 100 eV
+/process/em/AddDNARegion Target DNA_Opt0
+/process/em/printParameters
+
+################## Kernel initialization ################
+
+/run/initialize
+
+#####################  G4State_Idle #####################
+
+# ================== Verbose settings ===================
+
+/control/verbose 0
+/process/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+
+# ================== Cutoff settings ===================
+
+/run/setCut 1 cm
+/run/setCutForRegion Target 0.1 mm
+
+# ==================== Phantom settings =================
+
+# Set concentration
+#/D1/geometry/SetConcentration 0 mg/g
+/material/g4/printMaterial
+
+# ==================== Beam settings ====================
+
+# Fast Neutron Beam
+#/gps/particle neutron
+# Beam shape
+#/control/execute beam/conical-beam.mac
+# Beam spectrum
+#/control/execute beam/fast-neutron.mac
+
+# Mono Proton Beam
+/gps/particle proton
+
+# Beam shape
+/control/execute beam/elliptical-beam.mac
+/gps/pos/halfx 0 mm
+/gps/pos/halfy 0 mm
+
+# Beam spectrum
+/gps/ene/type Gauss
+#/gps/ene/mono 200.7965640745496 MeV
+/gps/ene/mono 1000 keV
+/gps/ene/sigma 0 MeV
+
+# Mono carbon ion beam
+#/gps/particle ion
+#/gps/ion 6 12
+
+# Beam shape
+#/control/execute beam/elliptical-beam.mac
+#/gps/pos/halfx 2.5 mm
+#/gps/pos/halfy 2.5 mm
+
+# Beam spectrum
+#/gps/ene/type Mono
+#
+# Kinetic Energy.
+# 195.MeV/u * 12(AtomicMass) = 2340. MeV
+#
+#/gps/energy 2340. MeV

@@ -1,0 +1,13 @@
+# Beam file for NP1
+# 
+# Neutron beam
+/gps/pos/type Beam
+/gps/pos/rot1 -1 0 0
+/gps/pos/centre 0. 0. -150. cm #beam position 
+
+/gps/pos/shape Circle 
+/gps/ang/type iso
+/gps/pos/radius 1 mm
+/gps/ang/mintheta 0 deg 
+/gps/ang/maxtheta 1.91 deg
+/gps/ang/rot1 -1 0 0 
