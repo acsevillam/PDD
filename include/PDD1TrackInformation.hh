@@ -1,12 +1,11 @@
 /*
- * Neutron Capture 1.0
+ * PDD 1.0
  * Copyright (c) 2020
  * Universidad Nacional de Colombia
  * Servicio Geológico Colombiano
  * All Right Reserved.
  *
- * Developed by Andrea Giraldo Torres
- *              Andrés Camilo Sevilla Moreno
+ * Developed by Andrés Camilo Sevilla Moreno
  *
  * Use and copying of these libraries and preparation of derivative works
  * based upon these libraries are permitted. Any copy of these libraries
@@ -16,19 +15,19 @@
  *
  */
 
-#ifndef D1TrackInformation_h
-#define D1TrackInformation_h 1
+#ifndef PDD1TrackInformation_h
+#define PDD1TrackInformation_h 1
 
 #include "G4Types.hh"
 #include "G4VUserTrackInformation.hh"
 
-class D1TrackInformation : public G4VUserTrackInformation
+class PDD1TrackInformation : public G4VUserTrackInformation
 {
 public:
 
-	D1TrackInformation();
+	PDD1TrackInformation();
 
-	virtual ~D1TrackInformation();
+	virtual ~PDD1TrackInformation();
 
 	void Print() const {};
 
@@ -38,4 +37,4 @@ public:
 private:
 	G4String fParentName;
 };
-#endif // D1TrackInformation_h
+#endif // PDD1TrackInformation_h

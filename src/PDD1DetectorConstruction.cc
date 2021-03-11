@@ -1,36 +1,21 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-/// \file runAndEvent/D1/src/D1DetectorConstruction.cc
-/// \brief Implementation of the D1DetectorConstruction class
-//
-//
-//
+/*
+ * PDD 1.0
+ * Copyright (c) 2020
+ * Universidad Nacional de Colombia
+ * Servicio Geológico Colombiano
+ * All Right Reserved.
+ *
+ * Developed by Andrés Camilo Sevilla Moreno
+ *
+ * Use and copying of these libraries and preparation of derivative works
+ * based upon these libraries are permitted. Any copy of these libraries
+ * must include this copyright notice.
+ *
+ * Bogotá, Colombia.
+ *
+ */
 
-#include "D1DetectorConstruction.hh"
-
+// Geant4 headers
 #include "G4PSEnergyDeposit3D.hh"
 #include "G4PSNofStep3D.hh"
 #include "G4PSCellFlux3D.hh"
@@ -58,12 +43,15 @@
 
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
-#include "D1NestedPhantomParameterisation.hh"
 
+// PDD headers
+
+#include "PDD1DetectorConstruction.hh"
+#include "PDD1NestedPhantomParameterisation.hh"
 #include "LET.hh"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-D1DetectorConstruction::D1DetectorConstruction()
+
+PDD1DetectorConstruction::PDD1DetectorConstruction()
 : G4VUserDetectorConstruction() ,
   fLVPhantomSens(0),
   fpRegion(0)
@@ -77,77 +65,74 @@ D1DetectorConstruction::D1DetectorConstruction()
 	new G4UnitDefinition("microgram/gram", "ug/g","Concentration", ug/g);
 
 	// Default size of water phantom,and segmentation.
-	fPhantomSize.setX(50.*um);
-	fPhantomSize.setY(50.*um);
-	fPhantomSize.setZ(50.*um);
-	fNx = 5;
-	fNy = 10;
-	fNz = 20;
+	fPhantomSize.setX(50.*cm);
+	fPhantomSize.setY(50.*cm);
+	fPhantomSize.setZ(50.*cm);
+	fNx = 1;
+	fNy = 1;
+	fNz = 500;
 
 	fConcentration=0*mg/g;
 
-	//fD1DetectorMessenger = new D1DetectorMessenger2(this) ;
+	//fPDD1DetectorMessenger = new PDD1DetectorMessenger2(this) ;
 
-    if ( (let = LET::GetInstance(this)) )
-    {
-        LET::GetInstance() -> Initialize();
-    }
+	// Comment out the line below if let calculation is not needed!
+	// Initialize LET with energy of primaries and clear data inside
+	if ( (let = LET::GetInstance(this)) )
+	{
+		LET::GetInstance() -> Initialize();
+	}
 
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-D1DetectorConstruction::~D1DetectorConstruction()
+PDD1DetectorConstruction::~PDD1DetectorConstruction()
 {;}
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-G4VPhysicalVolume* D1DetectorConstruction::Construct()
+G4VPhysicalVolume* PDD1DetectorConstruction::Construct()
 {
-	//=====================
-	// Material Definitions
-	//=====================
-	//
-	//-------- NIST Materials ----------------------------------------------------
-	//  Material Information imported from NIST database.
-	//
-	G4NistManager* NISTman = G4NistManager::Instance();
-	G4Material* vacuum  = NISTman->FindOrBuildMaterial("G4_Galactic");
-	G4Material* air  = NISTman->FindOrBuildMaterial("G4_AIR");
-	G4Material* water  = NISTman->FindOrBuildMaterial("G4_WATER");
 
-	//
+	// General Attributes
+	G4VisAttributes* simpleInvisibleSVisAtt;
+	simpleInvisibleSVisAtt= new G4VisAttributes(G4Colour(0.,0.0,0.5,0.025));
+	simpleInvisibleSVisAtt->SetVisibility(true);
+
+	// Get nist material manager
+	G4NistManager* nist = G4NistManager::Instance();
+
+	// Elements
+	G4Material* vacuum  = nist->FindOrBuildMaterial("G4_Galactic");
+
+	// Compounds
+	G4Material* WATER  = nist->FindOrBuildMaterial("G4_WATER");
+
 	// Print all the materials defined.
 	G4cout << G4endl << "The materials defined are : " << G4endl << G4endl;
 	G4cout << *(G4Material::GetMaterialTable()) << G4endl;
 
-	//============================================================================
-	//      Definitions of Solids, Logical Volumes, Physical Volumes
-	//============================================================================
+	// Geometrical Volume =========================================================================================
 
-	//-------------
-	// World Volume
-	//-------------
+	// World
+	G4double world_size_X = (10/2.)*m;
+	G4VSolid* world_geo = new G4Box("world_geo", world_size_X, world_size_X, world_size_X);
 
-	G4ThreeVector worldSize = G4ThreeVector(200*cm, 200*cm, 200*cm);
+	//Logical Volume ==============================================================================================
 
-	G4Box * solidWorld
-	= new G4Box("world", worldSize.x()/2., worldSize.y()/2., worldSize.z()/2.);
-	G4LogicalVolume * logicWorld
-	= new G4LogicalVolume(solidWorld, vacuum, "World", 0, 0, 0);
+	// World
+	G4LogicalVolume* world_log = new G4LogicalVolume(world_geo,vacuum,"world_log");
+	world_log -> SetVisAttributes(simpleInvisibleSVisAtt);
 
-	//
-	//  Must place the World Physical volume unrotated at (0,0,0).
-	G4VPhysicalVolume * physiWorld
-	= new G4PVPlacement(0,               // no rotation
-			G4ThreeVector(), // at (0,0,0)
-			logicWorld,      // its logical volume
-			"World",         // its name
-			0,               // its mother  volume
-			false,           // no boolean operations
-			0);              // copy number
+	//Physics Volume  =============================================================================================
 
-	//---------------
-	// Water Phantom
-	//---------------
+	// World
+	G4VPhysicalVolume* world_phys =
+			new G4PVPlacement(0,                    //no rotation
+					G4ThreeVector(),       			//at (0,0,0)
+					world_log,      				//its logical volume
+					"world_phys",   				//its name
+					0,                     			//its mother  volume
+					false,                 			//no boolean operation
+					0,                     			//copy number
+					0);      			    		//overlaps checking
 
 	//................................
 	// Mother Volume of Water Phantom
@@ -160,7 +145,7 @@ G4VPhysicalVolume* D1DetectorConstruction::Construct()
 	= new G4Box("phantom",
 			phantomSize.x()/2., phantomSize.y()/2., phantomSize.z()/2.);
 	G4LogicalVolume * logicPhantom
-	= new G4LogicalVolume(solidPhantom, water, "Phantom", 0, 0, 0);
+	= new G4LogicalVolume(solidPhantom, WATER, "Phantom", 0, 0, 0);
 
 	G4RotationMatrix* rot = new G4RotationMatrix();
 	//rot->rotateY(30.*deg);
@@ -170,7 +155,7 @@ G4VPhysicalVolume* D1DetectorConstruction::Construct()
 			positionPhantom, // at (x,y,z)
 			logicPhantom,    // its logical volume
 			"Phantom",       // its name
-			logicWorld,      // its mother  volume
+			world_log,      // its mother  volume
 			false,           // no boolean operations
 			0);              // copy number
 
@@ -178,7 +163,7 @@ G4VPhysicalVolume* D1DetectorConstruction::Construct()
 	// Phantom segmentation using Parameterisation
 	//..............................................
 	//
-	G4cout << "<-- D1DetectorConstruction::Construct-------" <<G4endl;
+	G4cout << "<-- PDD1DetectorConstruction::Construct-------" <<G4endl;
 	G4cout << "  Water Phantom Size " << fPhantomSize/mm       << G4endl;
 	G4cout << "  Segmentation  ("<< fNx<<","<<fNy<<","<<fNz<<")"<< G4endl;
 	G4cout << "<---------------------------------------------"<< G4endl;
@@ -201,7 +186,7 @@ G4VPhysicalVolume* D1DetectorConstruction::Construct()
 	G4VSolid* solYRep =
 			new G4Box(yRepName,phantomSize.x()/2.,sensSize.y()/2.,phantomSize.z()/2.);
 	G4LogicalVolume* logYRep =
-			new G4LogicalVolume(solYRep,water,yRepName);
+			new G4LogicalVolume(solYRep,WATER,yRepName);
 	//G4PVReplica* yReplica =
 	new G4PVReplica(yRepName,logYRep,logicPhantom,kYAxis,fNy,sensSize.y());
 	// X Slice
@@ -209,7 +194,7 @@ G4VPhysicalVolume* D1DetectorConstruction::Construct()
 	G4VSolid* solXRep =
 			new G4Box(xRepName,sensSize.x()/2.,sensSize.y()/2.,phantomSize.z()/2.);
 	G4LogicalVolume* logXRep =
-			new G4LogicalVolume(solXRep,water,xRepName);
+			new G4LogicalVolume(solXRep,WATER,xRepName);
 	//G4PVReplica* xReplica =
 	new G4PVReplica(xRepName,logXRep,logYRep,kXAxis,fNx,sensSize.x());
 
@@ -221,16 +206,16 @@ G4VPhysicalVolume* D1DetectorConstruction::Construct()
 	G4String zVoxName("phantomSens");
 	G4VSolid* solVoxel =
 			new G4Box(zVoxName,sensSize.x()/2.,sensSize.y()/2.,sensSize.z()/2.);
-	fLVPhantomSens = new G4LogicalVolume(solVoxel,water,zVoxName);
+	fLVPhantomSens = new G4LogicalVolume(solVoxel,WATER,zVoxName);
 	//
 	//
-	std::vector<G4Material*> phantomMat(2,water);
+	std::vector<G4Material*> phantomMat(2,WATER);
 	//
 	// Parameterisation for transformation of voxels.
 	//  (voxel size is fixed in this example.
 	//  e.g. nested parameterisation handles material and transfomation of voxels.)
-	D1NestedPhantomParameterisation* paramPhantom
-	= new D1NestedPhantomParameterisation(sensSize/2.,nzCells,phantomMat);
+	PDD1NestedPhantomParameterisation* paramPhantom
+	= new PDD1NestedPhantomParameterisation(sensSize/2.,nzCells,phantomMat);
 	//G4VPhysicalVolume * physiPhantomSens =
 	new G4PVParameterised("PhantomSens",     // their name
 			fLVPhantomSens,    // their logical volume
@@ -245,10 +230,6 @@ G4VPhysicalVolume* D1DetectorConstruction::Construct()
 	//===============================
 	//   Visualization attributes
 	//===============================
-
-	G4VisAttributes* boxVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,1.0));
-	logicWorld  ->SetVisAttributes(boxVisAtt);
-	//logicWorld->SetVisAttributes(G4VisAttributes::GetInvisible());
 
 	// Mother volume of WaterPhantom
 	G4VisAttributes* phantomVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
@@ -275,10 +256,11 @@ G4VPhysicalVolume* D1DetectorConstruction::Construct()
 
 
 
-	return physiWorld;
+	return world_phys;
 }
 
-void D1DetectorConstruction::ConstructSDandField() {
+void PDD1DetectorConstruction::ConstructSDandField() {
+
 
 	//================================================
 	// Sensitive detectors : MultiFunctionalDetector
@@ -315,14 +297,14 @@ void D1DetectorConstruction::ConstructSDandField() {
 			new G4SDParticleFilter(fltName="protonFilter", particleName="proton");
 	//
 	//-- electron filter
-	G4SDParticleFilter* electronFilter =
+	/*G4SDParticleFilter* electronFilter =
 			new G4SDParticleFilter(fltName="electronFilter");
 	electronFilter->add(particleName="e+");   // accept electrons.
 	electronFilter->add(particleName="e-");   // accept positorons.
 	//
 	//-- charged particle filter
 	G4SDChargedFilter* chargedFilter =
-			new G4SDChargedFilter(fltName="chargedFilter");
+			new G4SDChargedFilter(fltName="chargedFilter");*/
 
 	//------------------------
 	// PS : Primitive Scorers

@@ -1,12 +1,11 @@
 /*
- * Neutron Capture 1.0
+ * PDD 1.0
  * Copyright (c) 2020
  * Universidad Nacional de Colombia
  * Servicio Geológico Colombiano
  * All Right Reserved.
  *
- * Developed by Andrea Giraldo Torres
- *              Andrés Camilo Sevilla Moreno
+ * Developed by Andrés Camilo Sevilla Moreno
  *
  * Use and copying of these libraries and preparation of derivative works
  * based upon these libraries are permitted. Any copy of these libraries
@@ -21,27 +20,27 @@
 #include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
 
-// D1 Headers
-#include "D1TrackingAction.hh"
-#include "D1Analysis.hh"
+// PDD1 Headers
+#include "PDD1TrackingAction.hh"
+#include "PDD1Analysis.hh"
 
 using namespace std;
 
-D1TrackingAction::D1TrackingAction(D1EventAction* eventAction)
+PDD1TrackingAction::PDD1TrackingAction(PDD1EventAction* eventAction)
 :G4UserTrackingAction(),
  fEventAction(eventAction),
  fTotalEdep(0.)
 {}
 
-D1TrackingAction::~D1TrackingAction()
+PDD1TrackingAction::~PDD1TrackingAction()
 {}
 
-void D1TrackingAction::PreUserTrackingAction (const G4Track* /*aTrack*/)
+void PDD1TrackingAction::PreUserTrackingAction (const G4Track* /*aTrack*/)
 {
 	fTotalEdep=0.;
 }
 
-void D1TrackingAction::PostUserTrackingAction (const G4Track* aTrack){
+void PDD1TrackingAction::PostUserTrackingAction (const G4Track* aTrack){
 
 	// Analysis manager
 

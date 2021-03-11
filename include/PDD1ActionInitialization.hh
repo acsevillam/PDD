@@ -15,19 +15,22 @@
  *
  */
 
-#ifndef PhysicsList_h
-#define PhysicsList_h 1
+#ifndef PDD1ActionInitialization_H
+#define PDD1ActionInitialization_H 1
 
-#include "G4VModularPhysicsList.hh"
 #include "globals.hh"
+#include "G4VUserActionInitialization.hh"
 
-class G4VPhysicsConstructor;
-
-class PhysicsList: public G4VModularPhysicsList
+class PDD1ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    PhysicsList();
-    virtual ~PhysicsList();
+  PDD1ActionInitialization();//G4bool bParallelWorld);
+    virtual ~PDD1ActionInitialization();
+
+    virtual void Build() const;
+    virtual void BuildForMaster() const;
+
+private:
 };
 
 #endif

@@ -1,12 +1,11 @@
 /*
- * Neutron Capture 1.0
+ * PDD 1.0
  * Copyright (c) 2020
  * Universidad Nacional de Colombia
  * Servicio Geológico Colombiano
  * All Right Reserved.
  *
- * Developed by Andrea Giraldo Torres
- *              Andrés Camilo Sevilla Moreno
+ * Developed by Andrés Camilo Sevilla Moreno
  *
  * Use and copying of these libraries and preparation of derivative works
  * based upon these libraries are permitted. Any copy of these libraries
@@ -17,6 +16,7 @@
  */
 
 // Geant4 Headers
+
 #include "G4RunManager.hh"
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
@@ -25,31 +25,32 @@
 #include "G4Run.hh"
 #include "G4TouchableHandle.hh"
 #include "G4EmCalculator.hh"
+
+#include "PDD1SteppingAction.hh"
+#include "PDD1Analysis.hh"
+#include "PDD1DetectorConstruction.hh"
+#include "PDD1EventAction.hh"
+#include "PDD1RunAction.hh"
+#include "PDD1TrackingAction.hh"
 #include "LET.hh"
 
 // D1 Headers
-#include "D1SteppingAction.hh"
-#include "D1TrackingAction.hh"
-#include "D1EventAction.hh"
-#include "D1RunAction.hh"
-#include "D1DetectorConstruction.hh"
-#include "D1Analysis.hh"
 
 using namespace std;
 
-D1SteppingAction::D1SteppingAction(D1TrackingAction* trackingAction):G4UserSteppingAction(),
+PDD1SteppingAction::PDD1SteppingAction(PDD1TrackingAction* trackingAction):G4UserSteppingAction(),
 		fTrackingAction(trackingAction)
 {}
 
-D1SteppingAction::~D1SteppingAction()
+PDD1SteppingAction::~PDD1SteppingAction()
 {}
 
-void D1SteppingAction::UserSteppingAction(const G4Step* aStep)
+void PDD1SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
 
 	if (fScoringVolumeVector.empty()) {
-		const D1DetectorConstruction* detectorConstruction
-		= static_cast<const D1DetectorConstruction*>
+		const PDD1DetectorConstruction* detectorConstruction
+		= static_cast<const PDD1DetectorConstruction*>
 		(G4RunManager::GetRunManager()->GetUserDetectorConstruction());
 		fScoringVolumeVector = detectorConstruction->GetScoringVolumeVector();
 	}
@@ -71,7 +72,6 @@ void D1SteppingAction::UserSteppingAction(const G4Step* aStep)
 
 	G4Track* Track 							= aStep->GetTrack();
 	G4int TrackID 							= aStep->GetTrack()->GetTrackID();
-	G4double PositionZ 						= aStep->GetPreStepPoint()->GetPosition().z();
 	G4ParticleDefinition *particleDef 		= aStep->GetTrack()->GetDefinition();
 	G4String ParticleName 					= aStep->GetTrack()->GetDefinition()->GetParticleName();
 	G4double DE					 			= aStep->GetTotalEnergyDeposit();
@@ -79,6 +79,7 @@ void D1SteppingAction::UserSteppingAction(const G4Step* aStep)
 	G4int Z									= aStep->GetTrack()->GetDefinition()->GetAtomicNumber();
 	G4int A 								= aStep->GetTrack()->GetDefinition()->GetAtomicMass();
 	G4int pdg 								= aStep->GetTrack()->GetDefinition()->GetPDGEncoding();
+	G4double z								= aStep->GetPreStepPoint()->GetPosition().z();
 
 	const G4VTouchable* touchable = aStep->GetPreStepPoint()->GetTouchable();
 	G4int ix = touchable->GetReplicaNumber(1);
@@ -86,38 +87,28 @@ void D1SteppingAction::UserSteppingAction(const G4Step* aStep)
 	G4int iz = touchable->GetReplicaNumber(0);
 
 
-	// Analysis manager
-	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+	PDD1EventAction* eventAction = fTrackingAction->GetEventAction();
 
-	if(DE>0.){
-		analysisManager->FillH1(0,iz, DE/keV/nEvents);
-		fTrackingAction->AddTotalEdep(DE);
-	}
-
-	if(DX>0. && TrackID==1){
-		analysisManager->FillH1(1,iz, DX/um/nEvents);
-	}
-
-	D1EventAction* eventAction = fTrackingAction->GetEventAction();
-
-	if(TrackID==1 && Z >= 242*mm){
+	if(TrackID==1 && z >= 242*mm){
 		if(eventAction->GetK50()==0.){
 			eventAction->SetK50(aStep->GetTrack()->GetKineticEnergy());
 		}
 	}
 
-	if(TrackID==1 && Z >= 253*mm){
+	if(TrackID==1 && z >= 253*mm){
 		if(eventAction->GetK70()==0.){
 			eventAction->SetK70(aStep->GetTrack()->GetKineticEnergy());
 		}
 	}
 
-	if(TrackID==1 && Z >= 256*mm){
+	if(TrackID==1 && z >= 256*mm){
 		if(eventAction->GetK90()==0.){
 			eventAction->SetK90(aStep->GetTrack()->GetKineticEnergy());
 		}
 	}
 
+	// Analysis manager
+	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
 	if ( !(Z==0 && A==1) ) // All but not neutrons
 	{
@@ -161,14 +152,18 @@ void D1SteppingAction::UserSteppingAction(const G4Step* aStep)
 
 				}
 
-                // call the let filldatas function to calculate let
-                LET* let = LET::GetInstance();
-                let -> FillEnergySpectrum(TrackID, particleDef, eKinMean, materialStep, DE,DEEletrons,DX, ix, iy, iz);
+				// call the let filldatas function to calculate let
+				LET* let = LET::GetInstance();
+				let -> FillEnergySpectrum(TrackID, particleDef, eKinMean, materialStep, DE,DEEletrons,DX, ix, iy, iz);
 
-
+				if(TrackID==1){
+					analysisManager->FillH1(0,iz, (DE+DEEletrons)/keV/nEvents);
+					analysisManager->FillH1(1,iz, DX/um/nEvents);
+				}
 			}
 		}
 	}
+
 
 }
 

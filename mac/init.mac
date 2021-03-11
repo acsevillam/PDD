@@ -6,7 +6,7 @@
 # ================== Analysis settings ==================
 
 # Analysis parameters
-/analysis/setFileName data/N1
+/analysis/setFileName data/PPD1
 /analysis/setActivation true
 
 # Switch on/off histos
@@ -23,8 +23,8 @@
 /process/em/auger true
 /process/em/augerCascade true
 /process/em/deexcitationIgnoreCut true 
-/process/em/lowestElectronEnergy 100 eV
-/process/em/AddDNARegion Target DNA_Opt0
+/process/em/lowestElectronEnergy 0 keV
+#/process/em/AddDNARegion Target DNA_Opt0
 /process/em/printParameters
 
 ################## Kernel initialization ################
@@ -43,51 +43,71 @@
 
 # ================== Cutoff settings ===================
 
-/run/setCut 1 cm
-/run/setCutForRegion Target 0.1 mm
+/run/setCut 1 mm
+/run/setCutForRegion Target 10 um
 
 # ==================== Phantom settings =================
 
 # Set concentration
-#/D1/geometry/SetConcentration 0 mg/g
+#/PDD1/geometry/SetConcentration 0 mg/g
 /material/g4/printMaterial
 
 # ==================== Beam settings ====================
 
-# Fast Neutron Beam
-#/gps/particle neutron
-# Beam shape
+# Conical beam
 #/control/execute beam/conical-beam.mac
-# Beam spectrum
-#/control/execute beam/fast-neutron.mac
 
-# Mono Proton Beam
-/gps/particle proton
-
-# Beam shape
+# Eliptical beam
 /control/execute beam/elliptical-beam.mac
 /gps/pos/halfx 0 mm
 /gps/pos/halfy 0 mm
 
+####################### Neutron beam ####################
+
+# Fast Neutron Beam
+#/gps/particle neutron
+
+# Beam fast neutron spectrum
+#/control/execute beam/fast-neutron.mac
+
+# Beam thermal neutron spectrum
+#/control/execute beam/thermal-neutron.mac
+
+######################## Proton beam ####################
+
+# Mono Proton Beam
+/gps/particle proton
+
 # Beam spectrum
 /gps/ene/type Gauss
-#/gps/ene/mono 200.7965640745496 MeV
-/gps/ene/mono 1000 keV
-/gps/ene/sigma 0 MeV
+/gps/energy 200. MeV
+/gps/ene/sigma 2 MeV
+#/gps/ene/mono 200 MeV
+
+###################### Carbon ion beam ##################
 
 # Mono carbon ion beam
 #/gps/particle ion
 #/gps/ion 6 12
 
-# Beam shape
-#/control/execute beam/elliptical-beam.mac
-#/gps/pos/halfx 2.5 mm
-#/gps/pos/halfy 2.5 mm
-
 # Beam spectrum
-#/gps/ene/type Mono
-#
+#/gps/ene/type Gauss
 # Kinetic Energy.
 # 195.MeV/u * 12(AtomicMass) = 2340. MeV
-#
 #/gps/energy 2340. MeV
+#/gps/ene/sigma 20 MeV
+#/gps/ene/mono 2340 MeV
+
+#
+
+#/vis/viewer/set/viewpointThetaPhi 90 0 deg
+#/vis/viewer/set/upVector 0 1 0
+#/vis/viewer/zoomTo 200000000
+#/vis/viewer/set/targetPoint 0 0.  1.5 um
+
+
+######################## Alpha beam ####################
+
+# Mono alpha Beam
+#/gps/particle alpha
+#/gps/ene/mono 2 MeV

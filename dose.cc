@@ -1,12 +1,11 @@
 /*
- * Neutron Capture 1.0
+ * PDD 1.0
  * Copyright (c) 2020
  * Universidad Nacional de Colombia
  * Servicio Geológico Colombiano
  * All Right Reserved.
  *
- * Developed by Andrea Giraldo Torres
- *              Andrés Camilo Sevilla Moreno
+ * Developed by Andrés Camilo Sevilla Moreno
  *
  * Use and copying of these libraries and preparation of derivative works
  * based upon these libraries are permitted. Any copy of these libraries
@@ -15,6 +14,10 @@
  * Bogotá, Colombia.
  *
  */
+
+// D1 Headers
+#include "PDD1ActionInitialization.hh"
+#include "PDD1DetectorConstruction.hh"
 
 // Geant4 Headers
 #ifdef G4MULTITHREADED
@@ -35,18 +38,14 @@
 #include "G4SystemOfUnits.hh"
 #include "LET.hh"
 
-// D1 Headers
-#include "D1DetectorConstruction.hh"
-#include "include/D1ActionInitialization.hh"
-
 namespace {
 void PrintUsage() {
 	G4cerr << " Usage: " << G4endl;
-	G4cerr << " ./neutron_capture [-m macro ] "
+	G4cerr << " ./dose [-m macro ] "
 			<< " [-v visualization {'on','off'}]"
 			<< " [-vm vis_macro ]"
 			<< " [-n numberOfEvent ]"
-			<< "\n or\n ./neutron_capture [macro.mac]"
+			<< "\n or\n ./dose [macro.mac]"
 			<< G4endl;
 }
 }
@@ -124,7 +123,7 @@ int main(int argc,char** argv)
 	// Set mandatory initialization classes
 	//
 	// Detector construction
-	runManager->SetUserInitialization(new D1DetectorConstruction());
+	runManager->SetUserInitialization(new PDD1DetectorConstruction());
 
 	// Physics list
 	//runManager->SetUserInitialization(new QGSP_BIC_HP());
@@ -132,7 +131,7 @@ int main(int argc,char** argv)
 
 	// User action initialization
 	//runManager->SetUserInitialization(new D1ActionInitialization());
-	runManager->SetUserInitialization(new D1ActionInitialization());
+	runManager->SetUserInitialization(new PDD1ActionInitialization());
 
 	// Initialize visualization
 	G4VisManager* visManager = new G4VisExecutive;

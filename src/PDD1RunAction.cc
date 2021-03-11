@@ -1,37 +1,25 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-/// \file runAndEvent/D1/src/D1RunAction.cc
-/// \brief Implementation of the D1RunAction class
-//
-//
-// 
-#include "D1RunAction.hh"
-#include "D1Run.hh"
+/*
+ * PDD 1.0
+ * Copyright (c) 2020
+ * Universidad Nacional de Colombia
+ * Servicio Geológico Colombiano
+ * All Right Reserved.
+ *
+ * Developed by Andrés Camilo Sevilla Moreno
+ *
+ * Use and copying of these libraries and preparation of derivative works
+ * based upon these libraries are permitted. Any copy of these libraries
+ * must include this copyright notice.
+ *
+ * Bogotá, Colombia.
+ *
+ */
 
-//-- In order to obtain detector information.
+#include "PDD1RunAction.hh"
+#include "PDD1Analysis.hh"
+#include "PDD1DetectorConstruction.hh"
+#include "PDD1Run.hh"
+
 #include "G4RunManager.hh"
 #include "G4Run.hh"
 #include "G4AccumulableManager.hh"
@@ -39,20 +27,15 @@
 #include "G4LogicalVolume.hh"
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
-#include "D1Analysis.hh"
-#include "D1DetectorConstruction.hh"
-
 #include <fstream>
 
-D1RunAction::D1RunAction()
+PDD1RunAction::PDD1RunAction()
 : G4UserRunAction(),
-	fNx(0),
-	fNy(0),
-	fNz(0),
-	fRange(0.),
-	fRange2(0.)
+  fNx(0),
+  fNy(0),
+  fNz(0)
 {
-	// - Prepare data member for D1Run.
+	// - Prepare data member for PDD1Run.
 	//   vector represents a list of MultiFunctionalDetector names.
 	fSDName.push_back(G4String("PhantomSD"));
 
@@ -68,16 +51,11 @@ D1RunAction::D1RunAction()
 	new G4UnitDefinition("nanogray" , "nanoGy"  , "Dose", nanogray);
 	new G4UnitDefinition("picogray" , "picoGy"  , "Dose", picogray);
 
-	G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
-	// Register accumulable to the accumulable manager
-	accumulableManager->RegisterAccumulable(fRange);
-	accumulableManager->RegisterAccumulable(fRange2);
-
 	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 	analysisManager->SetActivation(true);
 	G4cout << "Using " << analysisManager->GetType() << G4endl;
 	analysisManager->SetVerboseLevel(0);
-	analysisManager->SetFileName("data/D1");
+	analysisManager->SetFileName("data/PDD1");
 
 	// Create Histograms an n-Tuples
 	CreateNTuples();
@@ -85,28 +63,25 @@ D1RunAction::D1RunAction()
 
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 // Destructor.
-D1RunAction::~D1RunAction()
+PDD1RunAction::~PDD1RunAction()
 {
 	fSDName.clear();
 	delete G4AccumulableManager::Instance();
 	delete G4AnalysisManager::Instance();
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //== 
-G4Run* D1RunAction::GenerateRun()
+G4Run* PDD1RunAction::GenerateRun()
 {
 	// Generate new RUN object, which is specially
 	// dedicated for MultiFunctionalDetector scheme.
-	//  Detail description can be found in D1Run.hh/cc.
-	return new D1Run(fSDName);
+	//  Detail description can be found in PDD1Run.hh/cc.
+	return new PDD1Run(fSDName);
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //==
-void D1RunAction::BeginOfRunAction(const G4Run* /*aRun*/)
+void PDD1RunAction::BeginOfRunAction(const G4Run* /*aRun*/)
 {
 
 	// reset accumulables to their initial values
@@ -122,11 +97,16 @@ void D1RunAction::BeginOfRunAction(const G4Run* /*aRun*/)
 		analysisManager->OpenFile();
 	}
 
+	// Instances for Total LET
+	totalLetD =      new G4double[500];
+	DtotalLetD =     new G4double[500];
+	totalLetT =      new G4double[500];
+	DtotalLetT =     new G4double[500];
+
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //== 
-void D1RunAction::EndOfRunAction(const G4Run* aRun)
+void PDD1RunAction::EndOfRunAction(const G4Run* aRun)
 {
 
 	// Merge accumulables
@@ -138,35 +118,36 @@ void D1RunAction::EndOfRunAction(const G4Run* aRun)
 
 	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
+
+	G4int nBins = analysisManager->GetH1(2)->get_bins();
+	G4double DE, DX;
+
+	for(G4int i=0; i<nBins; i++){
+		DE = analysisManager->GetH1(0)->bin_Sw(i);
+		DX = analysisManager->GetH1(1)->bin_Sw(i);
+		if(DX>0.) analysisManager->GetH1(2)->set_bin_content(i, 1,DE/DX,0.0,0.0,0.0);
+	}
+
+
 	if(analysisManager->IsActive()){
 		// Save histograms and ntuples
 		analysisManager->Write();
 		analysisManager->CloseFile();
 	}
 
-	// Total energy deposit in a run and its variance
-	//
-	G4double range=0., range2=0., rmsRange=0.;
-
-	range=fRange.GetValue();
-	range2=fRange2.GetValue();
-
-	rmsRange = range2 - range*range/nofEvents;
-	if (rmsRange > 0.) rmsRange = std::sqrt(rmsRange);
-
 	if(!IsMaster()) return;
 
-	//- D1Run object.
-	D1Run* run = (D1Run*) aRun;
-	//--- Dump all socred quantities involved in D1Run.
+	//- PDD1Run object.
+	PDD1Run* run = (PDD1Run*) aRun;
+	//--- Dump all socred quantities involved in PDD1Run.
 	run->DumpAllScorer();
 	//---
 
 	//
 	//- water phantom (Detector) Information.
 	//-- Number of segments in the water phantom.
-	const D1DetectorConstruction* detector =
-			(const D1DetectorConstruction*)
+	const PDD1DetectorConstruction* detector =
+			(const PDD1DetectorConstruction*)
 			(G4RunManager::GetRunManager()->GetUserDetectorConstruction());
 	detector->GetNumberOfSegmentsInPhantom(fNx,fNy,fNz); //Fill fNx,y,z.
 
@@ -181,11 +162,11 @@ void D1RunAction::EndOfRunAction(const G4Run* aRun)
 	G4cout << "============================================================="
 			<< G4endl;
 	G4cout << " Number of event processed : "<< aRun->GetNumberOfEvent() << G4endl;
-	G4cout << "============================================================="
-			<< G4endl;
+	G4cout << "============================================================="<< G4endl;
 	G4cout << std::setw( 8) << "#Z Cell#";
 	G4cout << std::setw(16) << totalEdep->GetName();
 	G4cout << std::setw(16) << protonEdep->GetName();
+	G4cout << G4endl;
 
 	G4int ix = fNx/2;
 	G4int iy = fNy/2;
@@ -205,7 +186,7 @@ void D1RunAction::EndOfRunAction(const G4Run* aRun)
 	}
 	G4cout << "============================================="<<G4endl;
 
-	std::ofstream  file("totED.txt");
+	std::ofstream  file("totED.out");
 	for ( iz = 0; iz < fNz; iz++){
 		for ( iy = 0; iy < fNy; iy++){
 			for ( ix = 0; ix < fNx; ix++){
@@ -221,9 +202,10 @@ void D1RunAction::EndOfRunAction(const G4Run* aRun)
 		}
 	}
 	file.close();
+
 }
 
-void D1RunAction::CreateNTuples(){
+void PDD1RunAction::CreateNTuples(){
 
 	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 	analysisManager->SetNtupleMerging(true);
@@ -244,7 +226,7 @@ void D1RunAction::CreateNTuples(){
 
 }
 
-void D1RunAction::CreateHistos(){
+void PDD1RunAction::CreateHistos(){
 
 	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
@@ -252,45 +234,52 @@ void D1RunAction::CreateHistos(){
 	analysisManager->SetFirstHistoId(0);
 
 	// id = 0
-	analysisManager->CreateH1("eDep","Energy deposited per event", 300, 0, 300*mm,"mm");
+	analysisManager->CreateH1("eDep","Energy deposited per event", 500, 0, 500*mm,"mm");
 	analysisManager->SetH1Activation(0,true);
 	analysisManager->SetH1XAxisTitle(0,"Phantom depth [mm]");
 	analysisManager->SetH1YAxisTitle(0,"Deposited Energy [keV]");
 
 	// id = 1
-	analysisManager->CreateH1("StepLength","Step length per event", 300, 0, 300*mm,"mm");
+	analysisManager->CreateH1("StepLength","Step length per event", 500, 0, 500*mm,"mm");
 	analysisManager->SetH1Activation(1,true);
 	analysisManager->SetH1XAxisTitle(1,"Phantom depth [mm]");
 	analysisManager->SetH1YAxisTitle(1,"Step length [um]");
 
 	// id = 2
-	analysisManager->CreateH1("LET","Linear energy transfer", 300, 0, 300*mm,"mm");
+	analysisManager->CreateH1("LET","Linear energy transfer", 500, 0, 500*mm,"mm");
 	analysisManager->SetH1Activation(2,true);
 	analysisManager->SetH1XAxisTitle(2,"Phantom depth [mm]");
 	analysisManager->SetH1YAxisTitle(2,"LET [keV/um]");
 
 	// id = 3
-	analysisManager->CreateH1("Range","Range", 300, 0, 300*mm,"mm");
+	analysisManager->CreateH1("Range","Range", 500, 0, 500*mm,"mm");
 	analysisManager->SetH1Activation(3,true);
 	analysisManager->SetH1XAxisTitle(3,"Range [mm]");
 	analysisManager->SetH1YAxisTitle(3,"[Counts]");
 
 	// id = 4
-	analysisManager->CreateH1("KineticEnergyAt50","Kinetic energy at 50% of dose", 400, 0, 200*MeV,"MeV");
+	analysisManager->CreateH1("KineticEnergyAt50","Kinetic energy at 50% of dose", 3000, 0, 300*MeV,"MeV");
 	analysisManager->SetH1Activation(4,true);
 	analysisManager->SetH1XAxisTitle(4,"Kinetic energy at 50% of dose [MeV]");
 	analysisManager->SetH1YAxisTitle(4,"[Counts]");
 
 	// id = 5
-	analysisManager->CreateH1("KineticEnergyAt70","Kinetic energy at 70% of dose", 400, 0, 200*MeV,"MeV");
+	analysisManager->CreateH1("KineticEnergyAt70","Kinetic energy at 70% of dose", 3000, 0, 300*MeV,"MeV");
 	analysisManager->SetH1Activation(5,true);
 	analysisManager->SetH1XAxisTitle(5,"Kinetic energy at 70% of dose [MeV]");
 	analysisManager->SetH1YAxisTitle(5,"[Counts]");
 
 	// id = 6
-	analysisManager->CreateH1("KineticEnergyAt90","Kinetic energy at 90% of dose", 400, 0, 200*MeV,"MeV");
+	analysisManager->CreateH1("KineticEnergyAt90","Kinetic energy at 90% of dose", 3000, 0, 300*MeV,"MeV");
 	analysisManager->SetH1Activation(6,true);
 	analysisManager->SetH1XAxisTitle(6,"Kinetic energy at 90% of dose [MeV]");
 	analysisManager->SetH1YAxisTitle(6,"[Counts]");
+
+	// id = 7
+	analysisManager->CreateH1("KineticEnergyAtVertex","Kinetic energy at vertex", 3000, 0, 300*MeV,"MeV","none","linear");
+	//analysisManager->CreateH1("KineticEnergyAtVertex","Kinetic energy at vertex", 12, 1E-9*MeV, 1E+2*MeV,"MeV","none","log");
+	analysisManager->SetH1Activation(7,true);
+	analysisManager->SetH1XAxisTitle(7,"Energy [MeV]");
+	analysisManager->SetH1YAxisTitle(7,"Relative Number of particles");
 
 }

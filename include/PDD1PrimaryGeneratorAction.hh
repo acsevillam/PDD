@@ -1,12 +1,11 @@
 /*
- * Neutron Capture 1.0
+ * PDD 1.0
  * Copyright (c) 2020
  * Universidad Nacional de Colombia
  * Servicio Geológico Colombiano
  * All Right Reserved.
  *
- * Developed by Andrea Giraldo Torres
- *              Andrés Camilo Sevilla Moreno
+ * Developed by Andrés Camilo Sevilla Moreno
  *
  * Use and copying of these libraries and preparation of derivative works
  * based upon these libraries are permitted. Any copy of these libraries
@@ -16,8 +15,8 @@
  *
  */
 
-#ifndef D1PrimaryGeneratorAction_h
-#define D1PrimaryGeneratorAction_h 1
+#ifndef PDD1PrimaryGeneratorAction_h
+#define PDD1PrimaryGeneratorAction_h 1
 
 // Geant4 Headers
 #include "G4VUserPrimaryGeneratorAction.hh"
@@ -27,11 +26,11 @@
 
 class G4Event;
 
-class D1PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
+class PDD1PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
 public:
-	D1PrimaryGeneratorAction();
-	virtual ~D1PrimaryGeneratorAction();
+	PDD1PrimaryGeneratorAction();
+	virtual ~PDD1PrimaryGeneratorAction();
 
 	// method from the base class
 	virtual void GeneratePrimaries(G4Event*);
@@ -45,4 +44,4 @@ private:
 };
 
 
-#endif // D1PrimaryGeneratorAction_h
+#endif // PDD1PrimaryGeneratorAction_h

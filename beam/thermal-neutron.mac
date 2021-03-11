@@ -1,6 +1,16 @@
 # Beam file for NP1
 # 
-/gps/ene/type user
+/gps/ene/type User
 /gps/hist/type energy
-/gps/hist/file beam/thermal-neutron-therapy-spectrum.dat
-/gps/hist/inter Log
+
+/gps/hist/point 9.9874114E-8 0.010842627
+/gps/hist/point 3.9991713E-7 0.03132005
+/gps/hist/point 1.6709563E-6 0.03739866
+/gps/hist/point 7.078029E-6 0.042783402
+/gps/hist/point 2.9551773E-5 0.055280846
+/gps/hist/point 5.1607087E-4 0.06474909
+/gps/hist/point 0.002279624 0.06111296
+/gps/hist/point 0.009188365 0.0249485
+/gps/hist/point 0.03902954 0.006392723
+/gps/hist/point 0.6914074 0.009962642
+/gps/hist/point 2.8160682 0.0012084076

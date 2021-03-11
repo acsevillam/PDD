@@ -3,6 +3,18 @@
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 project(dose)
 
+# ROOT
+include(FindROOT.cmake)
+
+set(INCLUDE_DIRECTORIES
+${ROOT_INCLUDE_DIR} 
+)
+include_directories( ${INCLUDE_DIRECTORIES})
+set(LINK_DIRECTORIES
+${ROOT_LIBRARY_DIR}
+)
+link_directories( ${LINK_DIRECTORIES})
+
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
 # You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui

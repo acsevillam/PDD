@@ -1,7 +1,62 @@
 # Beam file for NP1
 # 
 # Fast neutron beam spectrum
-/gps/ene/type Arb
-/gps/hist/type arb
-/gps/hist/file beam/fast-neutron-therapy-spectrum-by-standard-target.dat
-/gps/hist/inter Lin
+/gps/ene/type User
+/gps/hist/type energy
+
+/gps/hist/point 0.0 0.08828664
+/gps/hist/point 0.4320774 0.084232256
+/gps/hist/point 0.4963182 0.080177866
+/gps/hist/point 0.56113946 0.07747483
+/gps/hist/point 0.6997796 0.09301472
+/gps/hist/point 0.83396935 0.098194234
+/gps/hist/point 1.2236711 0.08377784
+/gps/hist/point 1.547197 0.06891132
+/gps/hist/point 1.9368019 0.0542697
+/gps/hist/point 2.263714 0.04728607
+/gps/hist/point 2.5248375 0.040753216
+/gps/hist/point 3.05018 0.03489472
+/gps/hist/point 3.838581 0.027007872
+/gps/hist/point 4.2983284 0.022050606
+/gps/hist/point 5.0890512 0.019569166
+/gps/hist/point 5.6822143 0.017989617
+/gps/hist/point 6.6054826 0.016858868
+/gps/hist/point 7.594636 0.015502563
+/gps/hist/point 8.782026 0.014820943
+/gps/hist/point 9.969417 0.014139323
+/gps/hist/point 10.827187 0.014135029
+/gps/hist/point 12.015254 0.015029986
+/gps/hist/point 13.401172 0.015698727
+/gps/hist/point 14.52316 0.016368788
+/gps/hist/point 15.579264 0.017264405
+/gps/hist/point 16.371342 0.017936118
+/gps/hist/point 17.82295 0.017928852
+/gps/hist/point 18.482773 0.01792555
+/gps/hist/point 19.803192 0.019720748
+/gps/hist/point 21.123322 0.020840269
+/gps/hist/point 22.773653 0.022633813
+/gps/hist/point 23.63181 0.023530422
+/gps/hist/point 24.489481 0.023300903
+/gps/hist/point 25.347155 0.023071386
+/gps/hist/point 26.336792 0.022841206
+/gps/hist/point 27.524858 0.023736162
+/gps/hist/point 28.844503 0.023729557
+/gps/hist/point 30.032185 0.023723613
+/gps/hist/point 31.285849 0.023717338
+/gps/hist/point 32.407448 0.0234865
+/gps/hist/point 33.66092 0.023029774
+/gps/hist/point 34.584476 0.0225747
+/gps/hist/point 35.508133 0.022344852
+/gps/hist/point 36.431786 0.022115003
+/gps/hist/point 37.487503 0.022109719
+/gps/hist/point 38.21263 0.02052951
+/gps/hist/point 39.663467 0.018720442
+/gps/hist/point 41.04832 0.016911706
+/gps/hist/point 42.169537 0.015779966
+/gps/hist/point 42.631313 0.0155524295
+/gps/hist/point 43.42136 0.011494412
+/gps/hist/point 44.14591 0.008562852
+/gps/hist/point 45.06869 0.006305976
+/gps/hist/point 45.859703 0.004500211
+/gps/hist/point 46.65101 0.0033701223
+/gps/hist/point 47.44241 0.0024652586

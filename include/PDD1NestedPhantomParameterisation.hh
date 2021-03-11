@@ -1,35 +1,22 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-/// \file runAndEvent/D1/include/D1NestedPhantomParameterisation.hh
-/// \brief Definition of the D1NestedPhantomParameterisation class
-//
-//
-//
-#ifndef D1NESTEDPARAMETERISATION_HH
-#define D1NESTEDPARAMETERISATION_HH
+/*
+ * PDD 1.0
+ * Copyright (c) 2020
+ * Universidad Nacional de Colombia
+ * Servicio Geológico Colombiano
+ * All Right Reserved.
+ *
+ * Developed by Andrés Camilo Sevilla Moreno
+ *
+ * Use and copying of these libraries and preparation of derivative works
+ * based upon these libraries are permitted. Any copy of these libraries
+ * must include this copyright notice.
+ *
+ * Bogotá, Colombia.
+ *
+ */
+
+#ifndef PDD1NestedParameterisation_hh
+#define PDD1NestedParameterisation_hh
 
 #include "G4Types.hh"
 #include "G4VNestedParameterisation.hh" 
@@ -57,45 +44,15 @@ class G4Polycone;
 class G4Polyhedra;
 class G4Hype;
 
-//
-/// A nested parameterisation class for a phantom
-///
-///  (Description)
-///     This parameterisation handles material and transfomation of voxles.
-///
-/// - G4Material* ComputeMaterial(G4VPhysicalVolume *currentVol,
-///                               const G4int repNo,
-///                               const G4VTouchable *parentTouch=0)
-///     returns material.
-///       if ix%2==0 && iy%2==0 && iz%2==0 then fMat[0]
-///       else fMat[1]
-///
-/// - G4int GetNumberOfMaterials() const
-///     returns the number of material defined in fMat
-///
-/// - G4Material* GetMaterial(G4int idx) const
-///     returns the i-th material of fMat
-///
-/// - void ComputeTransformation(const G4int no,
-///                              G4VPhysicalVolume *currentPV) const
-///     returns a transformation with the physical volume of the 2nd argument
-///     according to copyNo
-///     Its position is defined as G4ThreeVector(0.,0.,fpZ[copyNo]).
-///
-/// - void ComputeDimensions(G4Box &, const G4int, 
-///                          const G4VPhysicalVolume *) const
-///     returns dimensions of this parameterized volume with the physical 
-///     volume of the 3rd argument.
-///
-//
-class D1NestedPhantomParameterisation: public G4VNestedParameterisation
+
+class PDD1NestedPhantomParameterisation: public G4VNestedParameterisation
 {
   public:  // with description
 
-    D1NestedPhantomParameterisation(const G4ThreeVector& voxelSize,
+    PDD1NestedPhantomParameterisation(const G4ThreeVector& voxelSize,
                                       G4int nz,
                                       std::vector<G4Material*>& mat);
-   ~D1NestedPhantomParameterisation();
+   ~PDD1NestedPhantomParameterisation();
 
     // Methods required in derived classes
     // -----------------------------------
@@ -166,4 +123,4 @@ private:
   std::vector<G4Material*> fMat;
 };
 
-#endif
+#endif //PDD1NestedParameterisation_hh

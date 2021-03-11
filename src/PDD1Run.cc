@@ -1,72 +1,30 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-/// \file runAndEvent/D1/src/D1Run.cc
-/// \brief Implementation of the D1Run class
-//
-//
-//
+/*
+ * PDD 1.0
+ * Copyright (c) 2020
+ * Universidad Nacional de Colombia
+ * Servicio Geológico Colombiano
+ * All Right Reserved.
+ *
+ * Developed by Andrés Camilo Sevilla Moreno
+ *
+ * Use and copying of these libraries and preparation of derivative works
+ * based upon these libraries are permitted. Any copy of these libraries
+ * must include this copyright notice.
+ *
+ * Bogotá, Colombia.
+ *
+ */
 
-//=====================================================================
-//
-//  (Description)
-//    D1Run Class is for accumulating scored quantities which is
-//  scored using G4MutiFunctionalDetector and G4VPrimitiveScorer.
-//  Accumulation is done using G4THitsMap object.
-//
-//    The constructor D1Run(const std::vector<G4String> mfdName)
-//  needs a vector filled with MultiFunctionalDetector names which
-//  was assigned at instantiation of MultiFunctionalDetector(MFD).
-//  Then D1Run constructor automatically scans primitive scorers
-//  in the MFD, and obtains collectionIDs of all collections associated
-//  to those primitive scorers. Futhermore, the G4THitsMap objects 
-//  for accumulating during a RUN are automatically created too.
-//  (*) Collection Name is same as primitive scorer name.
-// 
-//    The resultant information is kept inside D1Run objects as
-//  data members.
-//  std::vector<G4String> fCollName;            // Collection Name,
-//  std::vector<G4int> fCollID;                 // Collection ID,
-//  std::vector<G4THitsMap<G4double>*> fRunMap; // HitsMap for RUN.
-//
-//  The resualtant HitsMap objects are obtain using access method,
-//  GetHitsMap(..).
-//
-//=====================================================================
+#include "PDD1Run.hh"
 
 #include "G4SDManager.hh"
 
 #include "G4MultiFunctionalDetector.hh"
 #include "G4VPrimitiveScorer.hh"
-#include "../include/D1Run.hh"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//
 //  Constructor. 
 //   (The vector of MultiFunctionalDetector name has to given.)
-D1Run::D1Run(const std::vector<G4String> mfdName) : G4Run()
+PDD1Run::PDD1Run(const std::vector<G4String> mfdName) : G4Run()
 {
   G4SDManager* pSDman = G4SDManager::GetSDMpointer();
   //=================================================
@@ -114,7 +72,7 @@ D1Run::D1Run(const std::vector<G4String> mfdName) : G4Run()
 //
 // Destructor
 //    clear all data members.
-D1Run::~D1Run()
+PDD1Run::~PDD1Run()
 {
   //--- Clear HitsMap for RUN
   G4int nMap = fRunMap.size();
@@ -131,7 +89,7 @@ D1Run::~D1Run()
 //  RecordEvent is called at end of event.
 //  For scoring purpose, the resultant quantity in a event,
 //  is accumulated during a Run.
-void D1Run::RecordEvent(const G4Event* aEvent)
+void PDD1Run::RecordEvent(const G4Event* aEvent)
 {
   numberOfEvent++;  // This is an original line.
 
@@ -162,8 +120,8 @@ void D1Run::RecordEvent(const G4Event* aEvent)
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void D1Run::Merge(const G4Run * aRun) {
-  const D1Run * localRun = static_cast<const D1Run *>(aRun);
+void PDD1Run::Merge(const G4Run * aRun) {
+  const PDD1Run * localRun = static_cast<const PDD1Run *>(aRun);
   
   //=======================================================
   // Merge HitsMap of working threads
@@ -185,7 +143,7 @@ void D1Run::Merge(const G4Run * aRun) {
 //-----
 // Access HitsMap.
 //  By  MultiFunctionalDetector name and Collection Name.
-G4THitsMap<G4double>* D1Run::GetHitsMap(const G4String& detName,
+G4THitsMap<G4double>* PDD1Run::GetHitsMap(const G4String& detName,
                                          const G4String& colName){
     G4String fullName = detName+"/"+colName;
     return GetHitsMap(fullName);
@@ -197,7 +155,7 @@ G4THitsMap<G4double>* D1Run::GetHitsMap(const G4String& detName,
 // Access HitsMap.
 //  By full description of collection name, that is
 //    <MultiFunctional Detector Name>/<Primitive Scorer Name>
-G4THitsMap<G4double>* D1Run::GetHitsMap(const G4String& fullName){
+G4THitsMap<G4double>* PDD1Run::GetHitsMap(const G4String& fullName){
     G4int nCol = fCollName.size();
     for ( G4int i = 0; i < nCol; i++){
         if ( fCollName[i] == fullName ){
@@ -212,7 +170,7 @@ G4THitsMap<G4double>* D1Run::GetHitsMap(const G4String& fullName){
 //-----
 // - Dump All HitsMap of this RUN. (for debuging and monitoring of quantity).
 //   This method calls G4THisMap::PrintAll() for individual HitsMap.
-void D1Run::DumpAllScorer(){
+void PDD1Run::DumpAllScorer(){
 
   // - Number of HitsMap in this RUN.
   G4int n = GetNumberOfHitsMap();
