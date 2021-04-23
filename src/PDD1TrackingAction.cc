@@ -22,7 +22,7 @@
 
 // PDD1 Headers
 #include "PDD1TrackingAction.hh"
-#include "PDD1Analysis.hh"
+#include "Analysis.hh"
 
 using namespace std;
 
@@ -64,7 +64,7 @@ void PDD1TrackingAction::PostUserTrackingAction (const G4Track* aTrack){
 	G4String ParticleName 				= aTrack->GetParticleDefinition()-> GetParticleName();
 	G4double TrackLength		 		= aTrack->GetTrackLength();
 
-	if(analysisManager->GetNtupleActivation(0)==true){
+	if(analysisManager->GetActivation()){
 		analysisManager->FillNtupleDColumn(0,0,KineticEnergyAtVertex);
 		analysisManager->FillNtupleSColumn(0,1,CreatorProcessName);
 		analysisManager->FillNtupleSColumn(0,2,CreatorModelName);

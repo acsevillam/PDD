@@ -15,46 +15,45 @@
  *
  */
 
+// PDD headers
+#include "PDD1DetectorConstruction.hh"
+#include "PDD1NestedPhantomParameterisation.hh"
+#include "DetectorSD.hh"
+#include "DetectorMatrix.hh"
+#include "Materials.hh"
+
 // Geant4 headers
+#include "G4RunManager.hh"
 #include "G4PSEnergyDeposit3D.hh"
 #include "G4PSNofStep3D.hh"
 #include "G4PSCellFlux3D.hh"
 #include "G4PSPassageCellFlux3D.hh"
 #include "G4PSFlatSurfaceFlux3D.hh"
 #include "G4PSFlatSurfaceCurrent3D.hh"
-
+#include "G4PSPassageCellCurrent3D.hh"
 #include "G4SDParticleWithEnergyFilter.hh"
 #include "G4SDParticleFilter.hh"
 #include "G4SDChargedFilter.hh"
-
 #include "G4NistManager.hh"
 #include "G4Material.hh"
 #include "G4Box.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 #include "G4SDManager.hh"
-
 #include "G4PVParameterised.hh"
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
-
 #include "G4SystemOfUnits.hh"    
 #include "G4ios.hh"
-
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
 
-// PDD headers
-
-#include "PDD1DetectorConstruction.hh"
-#include "PDD1NestedPhantomParameterisation.hh"
-#include "LET.hh"
-
-
 PDD1DetectorConstruction::PDD1DetectorConstruction()
 : G4VUserDetectorConstruction() ,
-  fLVPhantomSens(0),
-  fpRegion(0)
+  fPhantomLogicalVolume(0),
+  fpRegion(0),
+  fDetectorSD(0),
+  matrix(0)
 {
 
 	const G4double ug = 1.e-6*g;
@@ -64,29 +63,27 @@ PDD1DetectorConstruction::PDD1DetectorConstruction()
 	new G4UnitDefinition("miligram/gram", "mg/g","Concentration", mg/g);
 	new G4UnitDefinition("microgram/gram", "ug/g","Concentration", ug/g);
 
-	// Default size of water phantom,and segmentation.
-	fPhantomSize.setX(50.*cm);
-	fPhantomSize.setY(50.*cm);
-	fPhantomSize.setZ(50.*cm);
-	fNx = 1;
-	fNy = 1;
-	fNz = 500;
+	fConcentration=100*mg/g;
 
-	fConcentration=0*mg/g;
+	// Set material of the water phantom and of the detector
+	SetPhantomMaterial("G4_WATER");
+	SetDetectorMaterial("G4_WATER");
+	//SetDetectorMaterial("H2O+Au",fConcentration);
 
-	//fPDD1DetectorMessenger = new PDD1DetectorMessenger2(this) ;
+	// Set phantom size and position
+	SetPhantomSize(30.*cm, 30.*cm, 30.*cm);
+	SetPhantomPosition(G4ThreeVector(0. *cm, 0. *cm, 15. *cm));
 
-	// Comment out the line below if let calculation is not needed!
-	// Initialize LET with energy of primaries and clear data inside
-	if ( (let = LET::GetInstance(this)) )
-	{
-		LET::GetInstance() -> Initialize();
-	}
-
+	// Set detector size and position
+	SetDetectorSize(5.*cm, 5.*cm, 30.*cm);
+	SetDetectorToPhantomPosition(G4ThreeVector(0. *cm, 0. *cm, 0 *cm));
+	//SetDetectorSize(5.*cm, 5.*cm, 5.*cm);
+	//SetDetectorToPhantomPosition(G4ThreeVector(0. *cm, 0. *cm, -15*cm+16.5 *cm));
+	SetDetectorSegmentation(1, 1, 300);
 }
 
 PDD1DetectorConstruction::~PDD1DetectorConstruction()
-{;}
+{}
 
 G4VPhysicalVolume* PDD1DetectorConstruction::Construct()
 {
@@ -101,9 +98,6 @@ G4VPhysicalVolume* PDD1DetectorConstruction::Construct()
 
 	// Elements
 	G4Material* vacuum  = nist->FindOrBuildMaterial("G4_Galactic");
-
-	// Compounds
-	G4Material* WATER  = nist->FindOrBuildMaterial("G4_WATER");
 
 	// Print all the materials defined.
 	G4cout << G4endl << "The materials defined are : " << G4endl << G4endl;
@@ -138,65 +132,84 @@ G4VPhysicalVolume* PDD1DetectorConstruction::Construct()
 	// Mother Volume of Water Phantom
 	//................................
 
-	//--  Default size of water phantom is defined at constructor.
-	G4ThreeVector phantomSize = fPhantomSize;
+	//--  Default size of phantom is defined at constructor.
+	G4ThreeVector phantom_size = fPhantomSize;
 
-	G4Box * solidPhantom
+	G4Box * phantom_geo
 	= new G4Box("phantom",
-			phantomSize.x()/2., phantomSize.y()/2., phantomSize.z()/2.);
-	G4LogicalVolume * logicPhantom
-	= new G4LogicalVolume(solidPhantom, WATER, "Phantom", 0, 0, 0);
+			phantom_size.x()/2., phantom_size.y()/2., phantom_size.z()/2.);
+	G4LogicalVolume * phantom_log
+	= new G4LogicalVolume(phantom_geo, fPhantomMaterial, "phantom", 0, 0, 0);
 
-	G4RotationMatrix* rot = new G4RotationMatrix();
-	//rot->rotateY(30.*deg);
-	G4ThreeVector positionPhantom = G4ThreeVector(0,0,phantomSize.z()/2.);
+	G4RotationMatrix* rot1 = new G4RotationMatrix();
+	//rot1->rotateY(30.*deg);
+	G4ThreeVector positionPhantom = fPhantomPosition; //G4ThreeVector(0,0,phantom_size.z()/2.);
 	//G4VPhysicalVolume * physiPhantom =
-	new G4PVPlacement(rot,             // no rotation
-			positionPhantom, // at (x,y,z)
-			logicPhantom,    // its logical volume
-			"Phantom",       // its name
-			world_log,      // its mother  volume
-			false,           // no boolean operations
-			0);              // copy number
+	new G4PVPlacement(rot1,				// no rotation
+			positionPhantom,			// at (x,y,z)
+			phantom_log,				// its logical volume
+			"phantom",					// its name
+			world_log,					// its mother  volume
+			false,						// no boolean operations
+			0);							// copy number
+
+
+	//--  Default size detector is defined at constructor.
+	G4ThreeVector detector_size = fDetectorSize;
+
+	G4Box * detector_geo
+	= new G4Box("detector",
+			detector_size.x()/2., detector_size.y()/2., detector_size.z()/2.);
+	G4LogicalVolume * detector_log
+	= new G4LogicalVolume(detector_geo, fPhantomMaterial, "detector", 0, 0, 0);
+
+	G4RotationMatrix* rot2 = new G4RotationMatrix();
+	//rot2->rotateY(30.*deg);
+	G4ThreeVector positionDetectorToPhantom = fDetectorToPhantomPosition;// G4ThreeVector(0,0,-phantom_size.z()/2.+detector_size.z()/2.);
+	//G4VPhysicalVolume * physiPhantom =
+	new G4PVPlacement(rot2,				// no rotation
+			positionDetectorToPhantom,	// at (x,y,z)
+			detector_log,				// its logical volume
+			"detector",					// its name
+			phantom_log,				// its mother  volume
+			false,						// no boolean operations
+			0);							// copy number
 
 	//..............................................
 	// Phantom segmentation using Parameterisation
 	//..............................................
 	//
 	G4cout << "<-- PDD1DetectorConstruction::Construct-------" <<G4endl;
-	G4cout << "  Water Phantom Size " << fPhantomSize/mm       << G4endl;
-	G4cout << "  Segmentation  ("<< fNx<<","<<fNy<<","<<fNz<<")"<< G4endl;
+	G4cout << "  Phantom Material " << fPhantomMaterial->GetName() << G4endl;
+	G4cout << "  Phantom Size " << fPhantomSize/mm << G4endl;
+	G4cout << "  Detector Material " << fDetectorMaterial->GetName() << G4endl;
+	G4cout << "  Detector Size " << fDetectorSize/mm << G4endl;
+	G4cout << "  Segmentation  ("<< fNX<<","<<fNY<<","<<fNZ<<")"<< G4endl;
 	G4cout << "<---------------------------------------------"<< G4endl;
 	// Number of segmentation.
 	// - Default number of segmentation is defined at constructor.
-	G4int nxCells = fNx;
-	G4int nyCells = fNy;
-	G4int nzCells = fNz;
-
 	G4ThreeVector sensSize;
-	sensSize.setX(phantomSize.x()/(G4double)nxCells);
-	sensSize.setY(phantomSize.y()/(G4double)nyCells);
-	sensSize.setZ(phantomSize.z()/(G4double)nzCells);
-	// i.e Voxel size will be 2.0 x 2.0 x 2.0 mm3 cube by default.
-	//
+	sensSize.setX(fDetectorSize.x()/(G4double)fNX);
+	sensSize.setY(fDetectorSize.y()/(G4double)fNY);
+	sensSize.setZ(fDetectorSize.z()/(G4double)fNZ);
 
 	// Replication of Water Phantom Volume.
 	// Y Slice
 	G4String yRepName("RepY");
 	G4VSolid* solYRep =
-			new G4Box(yRepName,phantomSize.x()/2.,sensSize.y()/2.,phantomSize.z()/2.);
+			new G4Box(yRepName,fDetectorSize.x()/2.,sensSize.y()/2.,fDetectorSize.z()/2.);
 	G4LogicalVolume* logYRep =
-			new G4LogicalVolume(solYRep,WATER,yRepName);
+			new G4LogicalVolume(solYRep,fDetectorMaterial,yRepName);
 	//G4PVReplica* yReplica =
-	new G4PVReplica(yRepName,logYRep,logicPhantom,kYAxis,fNy,sensSize.y());
+	new G4PVReplica(yRepName,logYRep,detector_log,kYAxis,fNY,sensSize.y());
 	// X Slice
 	G4String xRepName("RepX");
 	G4VSolid* solXRep =
-			new G4Box(xRepName,sensSize.x()/2.,sensSize.y()/2.,phantomSize.z()/2.);
+			new G4Box(xRepName,sensSize.x()/2.,sensSize.y()/2.,fDetectorSize.z()/2.);
 	G4LogicalVolume* logXRep =
-			new G4LogicalVolume(solXRep,WATER,xRepName);
+			new G4LogicalVolume(solXRep,fDetectorMaterial,xRepName);
 	//G4PVReplica* xReplica =
-	new G4PVReplica(xRepName,logXRep,logYRep,kXAxis,fNx,sensSize.x());
+	new G4PVReplica(xRepName,logXRep,logYRep,kXAxis,fNX,sensSize.x());
 
 	//
 	//..................................
@@ -206,23 +219,23 @@ G4VPhysicalVolume* PDD1DetectorConstruction::Construct()
 	G4String zVoxName("phantomSens");
 	G4VSolid* solVoxel =
 			new G4Box(zVoxName,sensSize.x()/2.,sensSize.y()/2.,sensSize.z()/2.);
-	fLVPhantomSens = new G4LogicalVolume(solVoxel,WATER,zVoxName);
+	fVoxelLogicalVolume = new G4LogicalVolume(solVoxel,fDetectorMaterial,zVoxName);
 	//
 	//
-	std::vector<G4Material*> phantomMat(2,WATER);
+	std::vector<G4Material*> detectorMat(2,fDetectorMaterial);
 	//
 	// Parameterisation for transformation of voxels.
 	//  (voxel size is fixed in this example.
 	//  e.g. nested parameterisation handles material and transfomation of voxels.)
 	PDD1NestedPhantomParameterisation* paramPhantom
-	= new PDD1NestedPhantomParameterisation(sensSize/2.,nzCells,phantomMat);
+	= new PDD1NestedPhantomParameterisation(sensSize/2.,fNZ,detectorMat);
 	//G4VPhysicalVolume * physiPhantomSens =
-	new G4PVParameterised("PhantomSens",     // their name
-			fLVPhantomSens,    // their logical volume
-			logXRep,           // Mother logical volume
-			kUndefined,        // Are placed along this axis
-			nzCells,           // Number of cells
-			paramPhantom);     // Parameterisation.
+	new G4PVParameterised("PhantomSens",    // their name
+			fVoxelLogicalVolume,    			// their logical volume
+			logXRep,           				// Mother logical volume
+			kUndefined,        				// Are placed along this axis
+			fNZ,           					// Number of cells
+			paramPhantom);     				// Parameterisation.
 	//   Optimization flag is avaiable for,
 	//    kUndefined, kXAxis, kYAxis, kZAxis.
 	//
@@ -233,7 +246,7 @@ G4VPhysicalVolume* PDD1DetectorConstruction::Construct()
 
 	// Mother volume of WaterPhantom
 	G4VisAttributes* phantomVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
-	logicPhantom->SetVisAttributes(phantomVisAtt);
+	detector_log->SetVisAttributes(phantomVisAtt);
 
 	// Replica
 	G4VisAttributes* yRepVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,0.0));
@@ -242,91 +255,180 @@ G4VPhysicalVolume* PDD1DetectorConstruction::Construct()
 	logXRep->SetVisAttributes(xRepVisAtt);
 
 	// Skip the visualization for those voxels.
-	fLVPhantomSens->SetVisAttributes(G4VisAttributes::GetInvisible());
+	fVoxelLogicalVolume->SetVisAttributes(G4VisAttributes::GetInvisible());
 
-
-	fScoringVolumeVector.push_back(fLVPhantomSens);
+	fScoringVolumeVector.push_back(fVoxelLogicalVolume);
 
 	if (!fpRegion)
 	{
 		fpRegion = new G4Region("Target");
-		fLVPhantomSens -> SetRegion(fpRegion);
-		fpRegion->AddRootLogicalVolume( fLVPhantomSens );
+		fVoxelLogicalVolume -> SetRegion(fpRegion);
+		fpRegion->AddRootLogicalVolume( fVoxelLogicalVolume );
 	}
 
+	fVolumeOfVoxel = fNX * fNY * fNZ;
+	fMassOfVoxel = fDetectorMaterial -> GetDensity() * fVolumeOfVoxel;
 
+	//  This will clear the existing matrix (together with all data inside it)!
+	matrix = DetectorMatrix::GetInstance(fNX, fNY, fNZ, fMassOfVoxel);
 
 	return world_phys;
 }
 
 void PDD1DetectorConstruction::ConstructSDandField() {
 
-
-	//================================================
-	// Sensitive detectors : MultiFunctionalDetector
-	//================================================
-	//
 	//  Sensitive Detector Manager.
 	G4SDManager* pSDman = G4SDManager::GetSDMpointer();
-	//
+
+
 	// Sensitive Detector Name
-	G4String phantomSDname = "PhantomSD";
+	G4String phantomSDname1 = "PhantomSD1";
 
-	//------------------------
-	// MultiFunctionalDetector
-	//------------------------
-	//
-	// Define MultiFunctionalDetector with name.
-	G4MultiFunctionalDetector* mFDet
-	= new G4MultiFunctionalDetector(phantomSDname);
-	pSDman->AddNewDetector( mFDet );                // Register SD to SDManager.
-	fLVPhantomSens->SetSensitiveDetector(mFDet);    // Assign SD to the logical volume.
 
-	//---------------------------------------
-	// SDFilter : Sensitive Detector Filters
-	//---------------------------------------
-	//
-	// Particle Filter for Primitive Scorer with filter name(fltName)
-	// and particle name(particleName),
-	// or particle names are given by add("particle name"); method.
-	//
+	// Define MultiFunctionalDetector with name
+	G4MultiFunctionalDetector* mFDet = new G4MultiFunctionalDetector(phantomSDname1);
+	pSDman->AddNewDetector( mFDet );                		// Register SD to SDManager.
+	fVoxelLogicalVolume->SetSensitiveDetector(mFDet);    		// Assign SD to the logical volume.
+
 	G4String fltName,particleName;
-	//
-	//-- proton filter
-	G4SDParticleFilter* protonFilter =
-			new G4SDParticleFilter(fltName="protonFilter", particleName="proton");
-	//
-	//-- electron filter
-	/*G4SDParticleFilter* electronFilter =
-			new G4SDParticleFilter(fltName="electronFilter");
-	electronFilter->add(particleName="e+");   // accept electrons.
-	electronFilter->add(particleName="e-");   // accept positorons.
-	//
-	//-- charged particle filter
-	G4SDChargedFilter* chargedFilter =
-			new G4SDChargedFilter(fltName="chargedFilter");*/
+	// filters
+	G4SDParticleFilter* protonFilter = new G4SDParticleFilter(fltName="protonFilter", particleName="proton");
 
-	//------------------------
-	// PS : Primitive Scorers
-	//------------------------
-	// Primitive Scorers are used with SDFilters according to your purpose.
-	//
-	//
-	//-- Primitive Scorer for Energy Deposit.
-	//      Total, by protons, by electrons.
 	G4String psName;
-	G4PSEnergyDeposit3D * scorer0 = new G4PSEnergyDeposit3D(psName="totalEDep",
-			fNx,fNy,fNz);
-	G4PSEnergyDeposit3D * scorer1 = new G4PSEnergyDeposit3D(psName="protonEDep",
-			fNx,fNy,fNz);
+	// scorers
+	G4PSEnergyDeposit3D * scorer0 = new G4PSEnergyDeposit3D(psName="totalEDep",fNX,fNY,fNZ);
+	G4PSPassageCellCurrent3D * scorer1 = new G4PSPassageCellCurrent3D(psName="protonEDep",fNX,fNY,fNZ);
 	scorer1->SetFilter(protonFilter);
 
-	//
-	//------------------------------------------------------------
-	//  Register primitive scorers to MultiFunctionalDetector
-	//------------------------------------------------------------
+	// register scorers to MultiFunctionalDetector
 	mFDet->RegisterPrimitive(scorer0);
 	mFDet->RegisterPrimitive(scorer1);
 
+
+	// Sensitive Detector Name
+	G4String phantomSDname2 = "PhantomSD2";
+
+	// Sensitive detectors
+	DetectorSD* phantomSD = new DetectorSD(phantomSDname2,"PhantomHitsCollection");
+	pSDman->AddNewDetector(phantomSD);                			// Register SD to SDManager.
+	SetSensitiveDetector( fVoxelLogicalVolume, phantomSD );    	// Assign SD to the logical volume.
+
 }
 
+G4bool PDD1DetectorConstruction::SetPhantomMaterial(G4String material)
+{
+
+	if (G4Material* pMat = Materials::GetInstance()->GetMaterial(material))
+	{
+		fPhantomMaterial  = pMat;
+		if (fPhantomLogicalVolume)
+		{
+			fPhantomLogicalVolume ->  SetMaterial(pMat);
+
+			G4RunManager::GetRunManager() -> PhysicsHasBeenModified();
+			G4RunManager::GetRunManager() -> GeometryHasBeenModified();
+			G4cout << "The material of phantom has been changed to " << material << G4endl;
+		}
+	}
+	else
+	{
+		G4cout << "WARNING: material \"" << material << "\" doesn't exist in NIST elements/materials"
+				" table [located in $G4INSTALL/source/materials/src/G4NistMaterialBuilder.cc]" << G4endl;
+		G4cout << "Use command \"/parameter/nist\" to see full materials list!" << G4endl;
+		return false;
+	}
+
+	return true;
+}
+
+G4bool PDD1DetectorConstruction::SetPhantomMaterial(G4String material, G4double concentration)
+{
+
+	if (G4Material* pMat = Materials::GetInstance()->GetMaterial(material,concentration))
+	{
+		fPhantomMaterial  = pMat;
+		if (fPhantomLogicalVolume)
+		{
+			fPhantomLogicalVolume ->  SetMaterial(pMat);
+
+			G4RunManager::GetRunManager() -> PhysicsHasBeenModified();
+			G4RunManager::GetRunManager() -> GeometryHasBeenModified();
+			G4cout << "The material of phantom has been changed to " << material << G4endl;
+		}
+	}
+	else
+	{
+		G4cout << "WARNING: material \"" << material << "\" doesn't exist in NIST elements/materials"
+				" table [located in $G4INSTALL/source/materials/src/G4NistMaterialBuilder.cc]" << G4endl;
+		G4cout << "Use command \"/parameter/nist\" to see full materials list!" << G4endl;
+		return false;
+	}
+
+	return true;
+}
+
+G4bool PDD1DetectorConstruction::SetDetectorMaterial(G4String material)
+{
+
+	if (G4Material* pMat = Materials::GetInstance()->GetMaterial(material))
+	{
+		fDetectorMaterial = pMat;
+		if (fDetectorLogicalVolume)
+		{
+			fDetectorLogicalVolume -> SetMaterial(pMat);
+
+			G4RunManager::GetRunManager() -> PhysicsHasBeenModified();
+			G4RunManager::GetRunManager() -> GeometryHasBeenModified();
+			G4cout << "The material of detector has been changed to " << material << G4endl;
+		}
+	}
+	else
+	{
+		G4cout << "WARNING: material \"" << material << "\" doesn't exist in NIST elements/materials"
+				" table [located in $G4INSTALL/source/materials/src/G4NistMaterialBuilder.cc]" << G4endl;
+		G4cout << "Use command \"/parameter/nist\" to see full materials list!" << G4endl;
+		return false;
+	}
+
+	return true;
+}
+
+G4bool PDD1DetectorConstruction::SetDetectorMaterial(G4String material, G4double concentration)
+{
+
+	if (G4Material* pMat = Materials::GetInstance()->GetMaterial(material,concentration))
+	{
+		fDetectorMaterial = pMat;
+		if (fDetectorLogicalVolume)
+		{
+			fDetectorLogicalVolume -> SetMaterial(pMat);
+
+			G4RunManager::GetRunManager() -> PhysicsHasBeenModified();
+			G4RunManager::GetRunManager() -> GeometryHasBeenModified();
+			G4cout << "The material of detector has been changed to " << material << G4endl;
+		}
+	}
+	else
+	{
+		G4cout << "WARNING: material \"" << material << "\" doesn't exist in NIST elements/materials"
+				" table [located in $G4INSTALL/source/materials/src/G4NistMaterialBuilder.cc]" << G4endl;
+		G4cout << "Use command \"/parameter/nist\" to see full materials list!" << G4endl;
+		return false;
+	}
+
+	return true;
+}
+
+void PDD1DetectorConstruction::SetPhantomSize(G4double sizeX, G4double sizeY, G4double sizeZ)
+{
+	if (sizeX > 0.) fPhantomSize.setX(sizeX);
+	if (sizeY > 0.) fPhantomSize.setY(sizeY);
+	if (sizeZ > 0.) fPhantomSize.setZ(sizeZ);
+}
+
+void PDD1DetectorConstruction::SetDetectorSize(G4double sizeX, G4double sizeY, G4double sizeZ)
+{
+	if (sizeX > 0.) {fDetectorSize.setX(sizeX);}
+	if (sizeY > 0.) {fDetectorSize.setY(sizeY);}
+	if (sizeZ > 0.) {fDetectorSize.setZ(sizeZ);}
+}

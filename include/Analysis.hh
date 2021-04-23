@@ -15,10 +15,10 @@
  *
  */
 
-#include "PDD1TrackInformation.hh"
+#ifndef PDD1Analysis_h
+#define PDD1Analysis_h 1
 
-PDD1TrackInformation::PDD1TrackInformation()
-{}
+// Geant4 Headers
+#include "g4root.hh"
 
-PDD1TrackInformation::~PDD1TrackInformation()
-{}
+#endif // PDD1Analysis_h

@@ -7,7 +7,7 @@
 
 # Analysis parameters
 /analysis/setFileName data/PPD1
-/analysis/setActivation true
+/analysis/setActivation false
 
 # Switch on/off histos
 /analysis/setHistoDirName histograms
@@ -26,6 +26,9 @@
 /process/em/lowestElectronEnergy 0 keV
 #/process/em/AddDNARegion Target DNA_Opt0
 /process/em/printParameters
+
+# Change the default number of threads (in multi-threaded mode)
+/run/numberOfThreads 8
 
 ################## Kernel initialization ################
 
@@ -80,9 +83,9 @@
 
 # Beam spectrum
 /gps/ene/type Gauss
-/gps/energy 200. MeV
+/gps/energy 150. MeV
 /gps/ene/sigma 2 MeV
-#/gps/ene/mono 200 MeV
+#/gps/ene/mono 160 MeV
 
 ###################### Carbon ion beam ##################
 
@@ -98,16 +101,12 @@
 #/gps/ene/sigma 20 MeV
 #/gps/ene/mono 2340 MeV
 
-#
-
-#/vis/viewer/set/viewpointThetaPhi 90 0 deg
-#/vis/viewer/set/upVector 0 1 0
-#/vis/viewer/zoomTo 200000000
-#/vis/viewer/set/targetPoint 0 0.  1.5 um
-
-
 ######################## Alpha beam ####################
 
 # Mono alpha Beam
 #/gps/particle alpha
 #/gps/ene/mono 2 MeV
+
+# ==================== Run settings ===================
+
+/run/printProgress 100

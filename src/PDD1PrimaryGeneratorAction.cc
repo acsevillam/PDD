@@ -15,13 +15,12 @@
  *
  */
 
-// Geant4 Headers
+// PDD1 Headers
 #include "PDD1PrimaryGeneratorAction.hh"
 
+// Geant4 Headers
 #include "G4SystemOfUnits.hh"
 #include "G4ParticleTable.hh"
-
-// D1 Headers
 
 PDD1PrimaryGeneratorAction::PDD1PrimaryGeneratorAction(): G4VUserPrimaryGeneratorAction(),
 fParticleSource(0)

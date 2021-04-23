@@ -15,23 +15,23 @@
  *
  */
 
-#ifndef PDD1ActionInitialization_H
-#define PDD1ActionInitialization_H 1
+#ifndef PDD1ActionInitialization_h
+#define PDD1ActionInitialization_h 1
 
-#include "globals.hh"
 #include "G4VUserActionInitialization.hh"
+
+/// Action initialization class.
 
 class PDD1ActionInitialization : public G4VUserActionInitialization
 {
   public:
-  PDD1ActionInitialization();//G4bool bParallelWorld);
+    PDD1ActionInitialization();
     virtual ~PDD1ActionInitialization();
 
-    virtual void Build() const;
     virtual void BuildForMaster() const;
-
-private:
+    virtual void Build() const;
 };
 
-#endif
+#endif // PDD1ActionInitialization_h
 
+    

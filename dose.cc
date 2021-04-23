@@ -15,41 +15,32 @@
  *
  */
 
-// D1 Headers
-#include "PDD1ActionInitialization.hh"
+// PPD1 Headers
 #include "PDD1DetectorConstruction.hh"
+#include "PDD1ActionInitialization.hh"
+#include "DetectorMatrix.hh"
 
 // Geant4 Headers
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
+#include "G4RunManagerFactory.hh"
 #include "G4UImanager.hh"
+#include "QBBC.hh"
+#include "PhysicsList.hh"
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
 #include "Randomize.hh"
-#include "PhysicsList.hh"
-#include "G4PhysListFactory.hh"
-#include "G4VModularPhysicsList.hh"
-#include "G4ParallelWorldPhysics.hh"
-#include "QGSP_BIC_HP.hh"
 #include "G4ScoringManager.hh"
-#include "G4SystemOfUnits.hh"
-#include "LET.hh"
 
 namespace {
 void PrintUsage() {
 	G4cerr << " Usage: " << G4endl;
 	G4cerr << " ./dose [-m macro ] "
-			<< " [-v visualization {'on','off'}]"
 			<< " [-vm vis_macro ]"
+			<< " [-ui user interface {'on','off'}]"
 			<< " [-n numberOfEvent ]"
 			<< "\n or\n ./dose [macro.mac]"
 			<< G4endl;
 }
 }
-
 
 int main(int argc,char** argv)
 {
@@ -58,7 +49,6 @@ int main(int argc,char** argv)
 	G4UIExecutive* ui = 0;
 
 	// Evaluate arguments
-	//
 	if ( argc > 9 ) {
 		PrintUsage();
 		return 1;
@@ -66,26 +56,26 @@ int main(int argc,char** argv)
 
 	G4String macro("");
 	G4String vis_macro("");
-	G4String onOffVisualization("");
+	G4String onOffUI("");
 	G4int numberOfEvent(0);
 
 	if (argc == 1) {
 		ui = new G4UIExecutive(argc, argv);
-		onOffVisualization="on";
+		onOffUI="on";
 	}else{
 		for ( G4int i=1; i<argc; i=i+2 )
 		{
 			if ( G4String(argv[i]) == "-m" ) macro = argv[i+1];
-			else if (G4String(argv[i]) == "-v" ) {
-				onOffVisualization=argv[i+1];
-				if(onOffVisualization=="on"){
+			else if (G4String(argv[i]) == "-ui" ){
+				onOffUI=argv[i+1];
+				if(onOffUI=="on"){
 					ui = new G4UIExecutive(argc, argv);
 				}
 			}
 			else if ( G4String(argv[i]) == "-vm" ) {
-				if(!ui) ui = new G4UIExecutive(argc, argv);
 				if(G4String(argv[i]) == "-vm") vis_macro = argv[i+1];
-				onOffVisualization="on";
+				onOffUI="on";
+				if(!ui) ui = new G4UIExecutive(argc, argv);
 			}
 			else if ( G4String(argv[i]) == "-n" ) numberOfEvent = G4UIcommand::ConvertToInt(argv[i+1]);
 			else{
@@ -96,8 +86,8 @@ int main(int argc,char** argv)
 	}
 
 	if(macro == "") macro = "mac/init.mac";
+	if(onOffUI == "") onOffUI = "off";
 	if(vis_macro == "") vis_macro = "mac/vis1.mac";
-	if(onOffVisualization == "") onOffVisualization = "off";
 
 	// Choose the Random engine
 	//
@@ -106,15 +96,9 @@ int main(int argc,char** argv)
 	G4int seed = time( NULL );
 	G4Random::setTheSeed( seed );
 
-
 	// Construct the default run manager
 	//
-#ifdef G4MULTITHREADED
-	G4MTRunManager* runManager = new G4MTRunManager;
-	runManager->SetNumberOfThreads(G4Threading::G4GetNumberOfCores());
-#else
-	G4RunManager* runManager = new G4RunManager;
-#endif
+	auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default);
 
 	// Activate UI-command base scorer
 	G4ScoringManager * scoringManager = G4ScoringManager::GetScoringManager();
@@ -126,44 +110,49 @@ int main(int argc,char** argv)
 	runManager->SetUserInitialization(new PDD1DetectorConstruction());
 
 	// Physics list
-	//runManager->SetUserInitialization(new QGSP_BIC_HP());
-	runManager->SetUserInitialization(new PhysicsList());
+	//G4VModularPhysicsList* physicsList = new QBBC;
+	G4VModularPhysicsList* physicsList = new PhysicsList();
+	physicsList->SetVerboseLevel(1);
+	runManager->SetUserInitialization(physicsList);
 
 	// User action initialization
-	//runManager->SetUserInitialization(new D1ActionInitialization());
 	runManager->SetUserInitialization(new PDD1ActionInitialization());
 
 	// Initialize visualization
+	//
 	G4VisManager* visManager = new G4VisExecutive;
+	// G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
+	// G4VisManager* visManager = new G4VisExecutive("Quiet");
 	visManager->Initialize();
 
 	// Get the pointer to the User Interface manager
 	G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-	// Setting execute command
-	G4String command = "/control/execute ";
+
 
 	// Process macro or start UI session
-	UImanager->ApplyCommand(command+macro);
-
-	if (onOffVisualization=="on"){
+	//
+	if ( ! ui ) {
+		// batch mode
+		G4String command = "/control/execute ";
+		UImanager->ApplyCommand(command+macro);
+		if(numberOfEvent>=0) runManager->BeamOn(numberOfEvent);
+	}
+	else {
 		// interactive mode
+		G4String command = "/control/execute ";
+		UImanager->ApplyCommand(command+macro);
 		UImanager->ApplyCommand(command+vis_macro);
 		ui->SessionStart();
 		delete ui;
-	}else{
-		if ( numberOfEvent >= 0 ) runManager->BeamOn(numberOfEvent);
 	}
 
-
-     if (LET *let = LET::GetInstance())
-
-        if(let -> doCalculation)
-        {
-            let -> LetOutput(); 	// Calculate let
-            let -> StoreLetAscii(); // Store it
-        }
-
+	if (DetectorMatrix* matrix = DetectorMatrix::GetInstance())
+	{
+		matrix -> StoreEDepAscii();
+		matrix -> StoreLetAscii();
+		matrix -> StoreFluenceAscii();
+	}
 
 	// Job termination
 	// Free the store: user actions, physics_list and detector_description are

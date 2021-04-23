@@ -18,33 +18,31 @@
 #ifndef PDD1SteppingAction_h
 #define PDD1SteppingAction_h 1
 
-
-// Geant4 Headers
 #include "G4UserSteppingAction.hh"
 #include "globals.hh"
 #include "G4LogicalVolume.hh"
 
-class PDD1TrackingAction;
+class PDD1EventAction;
 
 using namespace std;
 
 /// Stepping action class
-///
+/// 
 
 class PDD1SteppingAction : public G4UserSteppingAction
 {
+  public:
+    PDD1SteppingAction(PDD1EventAction* eventAction);
+    virtual ~PDD1SteppingAction();
 
-public:
-	PDD1SteppingAction(PDD1TrackingAction* trackingAction);
-	virtual ~PDD1SteppingAction();
+    // method from the base class
+    virtual void UserSteppingAction(const G4Step*);
 
-	// method from the base class
-	virtual void UserSteppingAction(const G4Step*);
-
-private:
-	PDD1TrackingAction*  		fTrackingAction;
-    vector<G4LogicalVolume*> 	fScoringVolumeVector;
-
+  private:
+    PDD1EventAction*  			fEventAction;
+    vector<G4LogicalVolume*>  	fScoringVolumeVector;
 };
 
-#endif // PDD1SteppingAction_h
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+#endif

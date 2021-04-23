@@ -21,40 +21,44 @@
 #include "G4UserEventAction.hh"
 #include "globals.hh"
 
-class G4Event;
 class PDD1RunAction;
-class PDD1DetectorConstruction;
+
+/// Event action class
+///
 
 class PDD1EventAction : public G4UserEventAction
 {
 public:
 	PDD1EventAction(PDD1RunAction* runAction);
-	~PDD1EventAction();
+	virtual ~PDD1EventAction();
 
-public:
-	virtual void BeginOfEventAction(const G4Event*);
-	virtual void EndOfEventAction(const G4Event*);
+	virtual void BeginOfEventAction(const G4Event* event);
+	virtual void EndOfEventAction(const G4Event* event);
+
+	void AddEdep(G4double edep) { fEdep += edep; }
 
 	void SetRange(G4double range) { fRange = range; }
+
 	void SetK50(G4double kineticEnergy) { fK50 = kineticEnergy; }
 	double GetK50() { return fK50; }
+
 	void SetK70(G4double kineticEnergy) { fK70 = kineticEnergy; }
 	double GetK70() { return fK70; }
+
 	void SetK90(G4double kineticEnergy) { fK90 = kineticEnergy; }
 	double GetK90() { return fK90; }
 
-	PDD1RunAction* GetRunAction (){return fRunAction;};
-
 private:
-	PDD1RunAction* 			fRunAction;
-	G4double     			fRange;
-	G4double     			fK50;
-	G4double     			fK70;
-	G4double     			fK90;
-
+	PDD1RunAction* 	fRunAction;
+	G4double     	fEdep;
+	G4double     	fRange;
+	G4double     	fK50;
+	G4double     	fK70;
+	G4double     	fK90;
+	G4int 			hitsCollectionID;
 };
 
-//
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
 

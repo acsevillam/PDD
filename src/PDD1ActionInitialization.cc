@@ -14,44 +14,40 @@
  * Bogotá, Colombia.
  *
  */
-//
 
+// PDD1 Headers
 #include "PDD1ActionInitialization.hh"
-#include "PDD1EventAction.hh"
 #include "PDD1PrimaryGeneratorAction.hh"
 #include "PDD1RunAction.hh"
-#include "PDD1SteppingAction.hh"
+#include "PDD1EventAction.hh"
 #include "PDD1TrackingAction.hh"
+#include "PDD1SteppingAction.hh"
 
 PDD1ActionInitialization::PDD1ActionInitialization()
-{;}
+: G4VUserActionInitialization()
+{}
 
 PDD1ActionInitialization::~PDD1ActionInitialization()
-{;}
-
-void PDD1ActionInitialization::Build() const
-{
-
-  SetUserAction(new PDD1PrimaryGeneratorAction);
-
-  PDD1RunAction* runAction = new PDD1RunAction();
-  SetUserAction(runAction);
-
-  PDD1EventAction* eventAction = new PDD1EventAction(runAction);
-  SetUserAction(eventAction);
-
-  PDD1TrackingAction* trackingAction = new PDD1TrackingAction(eventAction);
-  SetUserAction(trackingAction);
-
-  SetUserAction(new PDD1SteppingAction(trackingAction));
-
-}
+{}
 
 void PDD1ActionInitialization::BuildForMaster() const
 {
-
-  G4UserRunAction* runAction = new PDD1RunAction;
-  SetUserAction(runAction);
-
+	PDD1RunAction* runAction = new PDD1RunAction;
+	SetUserAction(runAction);
 }
 
+void PDD1ActionInitialization::Build() const
+{
+	SetUserAction(new PDD1PrimaryGeneratorAction);
+
+	PDD1RunAction* runAction = new PDD1RunAction;
+	SetUserAction(runAction);
+
+	PDD1EventAction* eventAction = new PDD1EventAction(runAction);
+	SetUserAction(eventAction);
+
+	PDD1TrackingAction* trackingAction = new PDD1TrackingAction(eventAction);
+	SetUserAction(trackingAction);
+
+	SetUserAction(new PDD1SteppingAction(eventAction));
+}  
