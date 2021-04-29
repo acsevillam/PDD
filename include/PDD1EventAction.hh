@@ -39,6 +39,9 @@ public:
 
 	void SetRange(G4double range) { fRange = range; }
 
+	void SetK30(G4double kineticEnergy) { fK30 = kineticEnergy; }
+	double GetK30() { return fK30; }
+
 	void SetK50(G4double kineticEnergy) { fK50 = kineticEnergy; }
 	double GetK50() { return fK50; }
 
@@ -52,6 +55,7 @@ private:
 	PDD1RunAction* 	fRunAction;
 	G4double     	fEdep;
 	G4double     	fRange;
+	G4double     	fK30;
 	G4double     	fK50;
 	G4double     	fK70;
 	G4double     	fK90;

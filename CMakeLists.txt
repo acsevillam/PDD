@@ -47,6 +47,7 @@ set(PDD1_SCRIPTS
   mac/init.mac
   mac/vis1.mac
   mac/vis2.mac
+  mac/run1.mac
   beam/circular-beam.mac
   beam/elliptical-beam.mac
   beam/conical-beam.mac

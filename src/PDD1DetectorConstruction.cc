@@ -75,11 +75,11 @@ PDD1DetectorConstruction::PDD1DetectorConstruction()
 	SetPhantomPosition(G4ThreeVector(0. *cm, 0. *cm, 15. *cm));
 
 	// Set detector size and position
-	SetDetectorSize(5.*cm, 5.*cm, 30.*cm);
+	SetDetectorSize(10.*cm, 10.*cm, 30.*cm);
 	SetDetectorToPhantomPosition(G4ThreeVector(0. *cm, 0. *cm, 0 *cm));
 	//SetDetectorSize(5.*cm, 5.*cm, 5.*cm);
 	//SetDetectorToPhantomPosition(G4ThreeVector(0. *cm, 0. *cm, -15*cm+16.5 *cm));
-	SetDetectorSegmentation(1, 1, 300);
+	SetDetectorSegmentation(100, 100, 300);
 }
 
 PDD1DetectorConstruction::~PDD1DetectorConstruction()
@@ -223,6 +223,7 @@ G4VPhysicalVolume* PDD1DetectorConstruction::Construct()
 	//
 	//
 	std::vector<G4Material*> detectorMat(2,fDetectorMaterial);
+
 	//
 	// Parameterisation for transformation of voxels.
 	//  (voxel size is fixed in this example.
@@ -231,7 +232,7 @@ G4VPhysicalVolume* PDD1DetectorConstruction::Construct()
 	= new PDD1NestedPhantomParameterisation(sensSize/2.,fNZ,detectorMat);
 	//G4VPhysicalVolume * physiPhantomSens =
 	new G4PVParameterised("PhantomSens",    // their name
-			fVoxelLogicalVolume,    			// their logical volume
+			fVoxelLogicalVolume,    		// their logical volume
 			logXRep,           				// Mother logical volume
 			kUndefined,        				// Are placed along this axis
 			fNZ,           					// Number of cells

@@ -65,19 +65,25 @@ void PDD1SteppingAction::UserSteppingAction(const G4Step* aStep)
 
 	fEventAction->AddEdep(DE);
 
-	if(TrackID==1 && z >= 242*mm){
+	if(TrackID==1 && z >= 10.69*cm){
+		if(fEventAction->GetK30()==0.){
+			fEventAction->SetK30(aStep->GetTrack()->GetKineticEnergy());
+		}
+	}
+
+	if(TrackID==1 && z >= 19.23*cm){
 		if(fEventAction->GetK50()==0.){
 			fEventAction->SetK50(aStep->GetTrack()->GetKineticEnergy());
 		}
 	}
 
-	if(TrackID==1 && z >= 253*mm){
+	if(TrackID==1 && z >= 19.99*cm){
 		if(fEventAction->GetK70()==0.){
 			fEventAction->SetK70(aStep->GetTrack()->GetKineticEnergy());
 		}
 	}
 
-	if(TrackID==1 && z >= 256*mm){
+	if(TrackID==1 && z >= 20.33*cm){
 		if(fEventAction->GetK90()==0.){
 			fEventAction->SetK90(aStep->GetTrack()->GetKineticEnergy());
 		}

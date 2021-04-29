@@ -171,28 +171,34 @@ void PDD1RunAction::CreateHistos(){
 	analysisManager->SetH1YAxisTitle(0,"[Counts]");
 
 	// id = 1
-	analysisManager->CreateH1("KineticEnergyAt50","Kinetic energy at 50% of dose", 3000, 0, 300*MeV,"MeV");
+	analysisManager->CreateH1("KineticEnergyAt30","Kinetic energy at 30% of dose", 3000, 0, 300*MeV,"MeV");
 	analysisManager->SetH1Activation(1,true);
-	analysisManager->SetH1XAxisTitle(1,"Kinetic energy at 50% of dose [MeV]");
+	analysisManager->SetH1XAxisTitle(1,"Kinetic energy at 30% of dose [MeV]");
 	analysisManager->SetH1YAxisTitle(1,"[Counts]");
 
 	// id = 2
-	analysisManager->CreateH1("KineticEnergyAt70","Kinetic energy at 70% of dose", 3000, 0, 300*MeV,"MeV");
+	analysisManager->CreateH1("KineticEnergyAt50","Kinetic energy at 50% of dose", 3000, 0, 300*MeV,"MeV");
 	analysisManager->SetH1Activation(2,true);
-	analysisManager->SetH1XAxisTitle(2,"Kinetic energy at 70% of dose [MeV]");
+	analysisManager->SetH1XAxisTitle(2,"Kinetic energy at 50% of dose [MeV]");
 	analysisManager->SetH1YAxisTitle(2,"[Counts]");
 
 	// id = 3
-	analysisManager->CreateH1("KineticEnergyAt90","Kinetic energy at 90% of dose", 3000, 0, 300*MeV,"MeV");
+	analysisManager->CreateH1("KineticEnergyAt70","Kinetic energy at 70% of dose", 3000, 0, 300*MeV,"MeV");
 	analysisManager->SetH1Activation(3,true);
-	analysisManager->SetH1XAxisTitle(3,"Kinetic energy at 90% of dose [MeV]");
+	analysisManager->SetH1XAxisTitle(3,"Kinetic energy at 70% of dose [MeV]");
 	analysisManager->SetH1YAxisTitle(3,"[Counts]");
 
 	// id = 4
+	analysisManager->CreateH1("KineticEnergyAt90","Kinetic energy at 90% of dose", 3000, 0, 300*MeV,"MeV");
+	analysisManager->SetH1Activation(4,true);
+	analysisManager->SetH1XAxisTitle(4,"Kinetic energy at 90% of dose [MeV]");
+	analysisManager->SetH1YAxisTitle(4,"[Counts]");
+
+	// id = 5
 	analysisManager->CreateH1("KineticEnergyAtVertex","Kinetic energy at vertex", 3000, 0, 300*MeV,"MeV","none","linear");
 	//analysisManager->CreateH1("KineticEnergyAtVertex","Kinetic energy at vertex", 12, 1E-9*MeV, 1E+2*MeV,"MeV","none","log");
-	analysisManager->SetH1Activation(4,true);
-	analysisManager->SetH1XAxisTitle(4,"Energy [MeV]");
-	analysisManager->SetH1YAxisTitle(4,"Relative Number of particles");
+	analysisManager->SetH1Activation(5,true);
+	analysisManager->SetH1XAxisTitle(5,"Energy [MeV]");
+	analysisManager->SetH1YAxisTitle(5,"Relative Number of particles");
 
 }

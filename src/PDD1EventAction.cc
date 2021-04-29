@@ -34,6 +34,7 @@ PDD1EventAction::PDD1EventAction(PDD1RunAction* runAction)
   fRunAction(runAction),
   fEdep(0.),
   fRange(0.),
+  fK30(0.),
   fK50(0.),
   fK70(0.),
   fK90(0.)
@@ -47,6 +48,7 @@ PDD1EventAction::~PDD1EventAction()
 void PDD1EventAction::BeginOfEventAction(const G4Event*)
 {    
 	fEdep = 0.;
+	fK30=0.;
 	fK50=0.;
 	fK70=0.;
 	fK90=0.;
@@ -86,13 +88,15 @@ void PDD1EventAction::EndOfEventAction(const G4Event* event)
 
 		analysisManager->FillH1(0, fRange);
 
-		if(fK50>0.) analysisManager->FillH1(1,fK50);
+		if(fK30>0.) analysisManager->FillH1(1,fK30);
 
-		if(fK70>0.) analysisManager->FillH1(2,fK70);
+		if(fK50>0.) analysisManager->FillH1(2,fK50);
 
-		if(fK90>0.) analysisManager->FillH1(3,fK90);
+		if(fK70>0.) analysisManager->FillH1(3,fK70);
 
-		analysisManager->FillH1(4, KineticEnergyAtVertex);
+		if(fK90>0.) analysisManager->FillH1(4,fK90);
+
+		analysisManager->FillH1(5, KineticEnergyAtVertex);
 	}
 
 	if(hitsCollectionID < 0)

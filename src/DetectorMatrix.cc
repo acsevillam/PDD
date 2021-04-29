@@ -307,6 +307,7 @@ void DetectorMatrix::StoreLetAscii()
 void DetectorMatrix::StoreFluenceAscii()
 {
 
+	G4int nEvents = G4RunManager::GetRunManager()->GetCurrentRun()->GetNumberOfEventToBeProcessed() ;
 	auto fluence = new G4double*[ionStore.size()];
 
 	for (size_t l=0; l < ionStore.size(); l++){
@@ -323,7 +324,7 @@ void DetectorMatrix::StoreFluenceAscii()
 				}
 			}
 
-	StoreAscii(parent_folder+"/"+"Fluence.out", fluence,1./cm2, 1.0);
+	StoreAscii(parent_folder+"/"+"Fluence.out", fluence,(1./cm2), (1/nEvents));
 }
 
 G4bool DetectorMatrix::FillEdep(G4int i, G4int j, G4int k, G4double energyDeposit, G4int trackID, G4ParticleDefinition* particleDef){

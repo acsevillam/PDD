@@ -85,7 +85,7 @@
 #/gps/ene/type Gauss
 #/gps/energy 150. MeV
 #/gps/ene/sigma 2 MeV
-/gps/ene/mono 147 MeV
+/gps/ene/mono 131 MeV
 
 ###################### Carbon ion beam ##################
 
@@ -109,4 +109,17 @@
 
 # ==================== Run settings ===================
 
+/score/create/boxMesh Mesh1
+/score/mesh/boxSize 2.5 2.5 15 cm
+/score/mesh/translate/xyz 0 0 15 cm
+/score/mesh/nBin 50 50 3000 // x y z
+/score/quantity/energyDeposit eDep
+/score/close
+
+# ==================== Run settings ===================
+
 /run/printProgress 100
+
+/run/beamOn 10000
+
+/score/dumpQuantityToFile Mesh1 eDep data/Edep2.out
